@@ -1,0 +1,10 @@
+scalar BigDecimal
+scalar DateTime
+scalar Time
+scalar Upload
+scalar Long
+
+schema {
+    mutation: Mutation
+    query: Query
+}
