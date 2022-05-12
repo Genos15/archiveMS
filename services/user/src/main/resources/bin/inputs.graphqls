@@ -1,5 +1,5 @@
 input UserInput {
-    id: ID
+    id: ID!
     firstname: String
     lastname: String
     photo: String
