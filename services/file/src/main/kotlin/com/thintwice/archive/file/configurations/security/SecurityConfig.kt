@@ -1,4 +1,4 @@
-package com.thintwice.archive.file.config
+package com.thintwice.archive.file.configurations.security
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
