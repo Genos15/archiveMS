@@ -37,6 +37,7 @@
         <module>system/discovery</module>
         <module>system/gateway</module>
         <module>services/category</module>
+        <module>services/auth</module>
     </modules>
 
     <repositories>
