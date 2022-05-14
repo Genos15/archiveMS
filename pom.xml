@@ -38,6 +38,7 @@
         <module>system/gateway</module>
         <module>services/category</module>
         <module>services/auth</module>
+        <module>services/article</module>
     </modules>
 
     <repositories>

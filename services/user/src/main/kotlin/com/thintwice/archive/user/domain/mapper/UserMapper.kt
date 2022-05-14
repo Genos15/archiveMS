@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.thintwice.archive.user.configurations.object_mapping.MapperState
-import com.thintwice.archive.user.exceptions.failOnNull
 import mu.KLogger
 import mu.KotlinLogging
 import java.util.*
@@ -18,7 +17,7 @@ class UserMapper(
 ) : MapperState<Row, Any, User> {
 
     override fun asList(row: Row, o: Any): List<User> = try {
-        val payload = row.get(0, String::class.java) ?: "{}" ?: failOnNull()
+        val payload = row.get(0, String::class.java) ?: error("something went wrong with mapping value")
         mapper.readValue(payload)
     } catch (e: Exception) {
         logger.warn { e.message }
@@ -26,7 +25,7 @@ class UserMapper(
     }
 
     override fun asSingle(row: Row, o: Any): Optional<User> = try {
-        val payload = row.get(0, String::class.java) ?: "{}" ?: failOnNull()
+        val payload = row.get(0, String::class.java) ?: error("something went wrong with mapping value")
         Optional.ofNullable(mapper.readValue<List<User>?>(payload)?.firstOrNull())
     } catch (e: Exception) {
         logger.warn { e.message }
