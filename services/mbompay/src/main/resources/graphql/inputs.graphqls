@@ -1,0 +1,14 @@
+input ProviderInput {
+    id: UUID
+    name: String
+    type: ProvidersType
+    marks: [String]
+    logo: UUID
+}
+
+input CardInput {
+    id: UUID
+    number: String
+    expiredAt: DateTime #format -> 2020-12-09T16:09:53-00:00
+    providerId: UUID
+}

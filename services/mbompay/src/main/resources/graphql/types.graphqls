@@ -1,0 +1,25 @@
+type SessionToken {
+    id: UUID!
+    accessToken: UUID!
+    refreshToken: UUID!
+    expiredIn: Long!
+    verified: Boolean
+    lang: String
+    longitude: Float
+    latitude: Float
+}
+
+type Provider {
+    id: UUID!
+    name: String!
+    type: ProvidersType!
+    marks: [String]!
+    logo: UUID
+}
+
+type Card {
+    id: UUID!
+    number: String!
+    expiredAt: DateTime!  #format -> 2020-12-09T16:09:53-00:00
+    provider: Provider
+}

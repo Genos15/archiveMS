@@ -1,4 +1,4 @@
-FROM java:8
+FROM openjdk:8-jre
 ENV port = 8111
 EXPOSE 8111:8111
 ADD /target/*.jar app.jar
