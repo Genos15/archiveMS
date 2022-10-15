@@ -1,9 +1,9 @@
-package com.rsba.order_microservice
+package com.thintwice.archive.mbompay
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class OrderMicroserviceApplicationTests {
+class MbompayMicroserviceApplicationTests {
 
 }

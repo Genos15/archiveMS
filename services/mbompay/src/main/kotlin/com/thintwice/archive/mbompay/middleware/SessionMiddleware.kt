@@ -3,6 +3,8 @@ package com.thintwice.archive.mbompay.middleware
 import com.thintwice.archive.mbompay.domain.common.IMEIValidator
 import com.thintwice.archive.mbompay.domain.common.UUIDValidator
 import com.thintwice.archive.mbompay.domain.exception.InvalidTokenException
+import mu.KLogger
+import mu.KotlinLogging
 import org.springframework.graphql.server.WebGraphQlInterceptor
 import org.springframework.graphql.server.WebGraphQlRequest
 import org.springframework.graphql.server.WebGraphQlResponse
@@ -11,7 +13,7 @@ import reactor.core.publisher.Mono
 import java.util.UUID
 
 @Component
-class SessionMiddleware : WebGraphQlInterceptor {
+class SessionMiddleware(private val logger: KLogger = KotlinLogging.logger {}) : WebGraphQlInterceptor {
     override fun intercept(request: WebGraphQlRequest, chain: WebGraphQlInterceptor.Chain): Mono<WebGraphQlResponse> {
         // check if we have the imei
         // check if we have the token but without the imei
@@ -55,6 +57,7 @@ class SessionMiddleware : WebGraphQlInterceptor {
             builder.graphQLContext(contextMap).build()
         }
 
+        logger.info { "\nSessionMiddleware → done" }
         return chain.next(request)
     }
 }

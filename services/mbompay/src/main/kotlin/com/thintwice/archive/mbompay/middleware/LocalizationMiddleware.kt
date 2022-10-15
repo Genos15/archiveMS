@@ -1,6 +1,8 @@
 package com.thintwice.archive.mbompay.middleware
 
 import com.thintwice.archive.mbompay.domain.input.LocalizationInput
+import mu.KLogger
+import mu.KotlinLogging
 import org.springframework.graphql.server.WebGraphQlInterceptor
 import org.springframework.graphql.server.WebGraphQlRequest
 import org.springframework.graphql.server.WebGraphQlResponse
@@ -8,7 +10,7 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
 @Component
-class LocalizationMiddleware : WebGraphQlInterceptor {
+class LocalizationMiddleware(private val logger: KLogger = KotlinLogging.logger {}) : WebGraphQlInterceptor {
     override fun intercept(request: WebGraphQlRequest, chain: WebGraphQlInterceptor.Chain): Mono<WebGraphQlResponse> {
         // check if we have the longitude, latitude and the language
         val latitudeHeader = request.headers["Latitude"]?.firstOrNull()
@@ -21,6 +23,7 @@ class LocalizationMiddleware : WebGraphQlInterceptor {
         request.configureExecutionInput { _, builder ->
             builder.graphQLContext(contextMap).build()
         }
+        logger.info { "\nLocalizationMiddleware → done" }
         return chain.next(request)
     }
 }
