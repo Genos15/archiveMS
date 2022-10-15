@@ -1,0 +1,4 @@
+type Mutation {
+    login(input: TokenInput!): Token
+    refresh: Token
+}

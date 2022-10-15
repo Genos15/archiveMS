@@ -1,0 +1,7 @@
+input CategoryInput {
+    id: ID
+    name: String
+    description: String
+    ioniconsName: String
+    defaultIconName: String
+}

@@ -1,0 +1,38 @@
+#!/bin/bash
+apt install net-tools
+
+netstat -na | grep :9000
+netstat -na | grep :80
+netstat -na | grep :8080
+netstat -na | grep :9001
+netstat -na | grep :9002
+netstat -na | grep :9003
+netstat -na | grep :9004
+netstat -na | grep :9005
+netstat -na | grep :5432
+netstat -na | grep :5433
+netstat -na | grep :27017
+
+ss -na | grep :80
+ss -na | grep :8080
+ss -na | grep :9000
+ss -na | grep :9001
+ss -na | grep :9002
+ss -na | grep :9003
+ss -na | grep :9004
+ss -na | grep :9005
+ss -na | grep :5432
+ss -na | grep :5433
+ss -na | grep :27017
+
+sudo ufw allow 80
+sudo ufw allow 8080
+sudo ufw allow 9000
+sudo ufw allow 9001
+sudo ufw allow 9002
+sudo ufw allow 9003
+sudo ufw allow 9004
+sudo ufw allow 9005
+sudo ufw allow 5432
+sudo ufw allow 5433
+sudo ufw allow 27017
