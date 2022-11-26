@@ -8,19 +8,58 @@ scalar Long
 scalar DateTime
 
 type Mutation {
-    login: SessionToken
-    refresh: SessionToken
-    provider(input: ProviderInput!): Provider
-    card(input: CardInput!): Card
+#    login: SessionToken
+#    refresh: SessionToken
+
+    # cards
+    card(input: BankCardInput!): Card!
+
+    # operators
+    operator(input: OperatorInput!): Operator!
+
+    # customers
+    customer(input: CustomerInput!): Customer!
+
+    # one time password | input is contact info email, phone
+    otp(input: String!): Long!
+    # connect to the server
+    # jwt token
+    connect(input: UserInput!, code: String): JwtToken!
+    refresh: JwtToken!
+
+    #sending modes
+    mode(input: ModeInput!): Mode!
 
     # delete actions
     deleteCard(id: UUID!): Boolean
     deleteProvider(id: UUID!): Boolean
+    deleteUser(id: UUID!): Boolean
+    deleteMode(id: UUID!): Boolean
 }
 
 type Query {
+    # cards
     card(id: UUID!): Card
-    cards(first: Int!, after: UUID): [Card]
+    cards(first: Int!, after: UUID): [Card]!
+
+    # providers
     provider(id: UUID!): Provider
-    providers(first: Int!, after: UUID): [Provider]
+    providers(first: Int!, after: UUID): [Provider]!
+
+    # operators
+    operator(id: UUID!): Operator
+    operators(first: Int!, after: UUID): [Operator]!
+
+    # customers
+    customer(id: UUID!): Customer
+    customers(first: Int!, after: UUID): [Customer]!
+
+    # sending modes
+    mode(id: UUID!): Mode
+    modes(first: Int!, after: UUID): [Mode]!
+
+    # countries missing modes by countries
+    country(id: UUID!): Country
+    countries(first: Int!, after: UUID): [Country]!
+
 }

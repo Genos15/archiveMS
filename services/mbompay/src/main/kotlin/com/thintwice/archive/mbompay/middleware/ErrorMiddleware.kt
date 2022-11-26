@@ -20,8 +20,10 @@ class ErrorMiddleware(private val logger: KLogger = KotlinLogging.logger {}) : W
         return chain.next(request).map { response ->
             val graphQLErrors: List<GraphQLError> = response.errors.stream().filter { error ->
                 (ErrorType.InvalidSyntax == error.errorType || ErrorType.ValidationError == error.errorType)
-            }.map { BadRequestException(errorType = it.errorType, message = it.message, locations = it.locations) }
-                .collect(Collectors.toList())
+            }.map {
+                val message = it.message?.split("]")?.last()?.trim { src -> src <= ' ' }
+                BadRequestException(errorType = it.errorType, message = message, locations = it.locations)
+            }.collect(Collectors.toList())
             if (graphQLErrors.isNotEmpty()) {
                 return@map response.transform { builder -> builder.errors(graphQLErrors) }
             }

@@ -18,6 +18,8 @@ class GraphQLExceptionHandler(
 
     override fun resolveToSingleError(e: Throwable, env: DataFetchingEnvironment): GraphQLError? {
         logger.error { "\nGraphQLExceptionHandler → ${e.message}" }
+        e.printStackTrace()
+        println("Must handle this exception")
         return when (e) {
             is NotFoundException -> toGraphQLError(e)
             is Exception -> BadRequestException(message = e.message)
