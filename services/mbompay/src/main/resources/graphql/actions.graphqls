@@ -25,10 +25,10 @@ type Mutation {
     # connect to the server
     # jwt token
     connect(input: UserInput!, code: String): JwtToken!
-    refresh: JwtToken!
+    refresh: JwtToken
 
     #sending modes
-    mode(input: ModeInput!): Mode!
+    mode(input: ModeInput!): Mode
 
     # delete actions
     deleteCard(id: UUID!): Boolean
@@ -40,26 +40,26 @@ type Mutation {
 type Query {
     # cards
     card(id: UUID!): Card
-    cards(first: Int!, after: UUID): [Card]!
+    cards(first: Int!, after: UUID): [Card]
 
     # providers
     provider(id: UUID!): Provider
-    providers(first: Int!, after: UUID): [Provider]!
+    providers(first: Int!, after: UUID): [Provider]
 
     # operators
     operator(id: UUID!): Operator
-    operators(first: Int!, after: UUID): [Operator]!
+    operators(first: Int!, after: UUID): [Operator]
 
     # customers
     customer(id: UUID!): Customer
-    customers(first: Int!, after: UUID): [Customer]!
+    customers(first: Int!, after: UUID): [Customer]
 
     # sending modes
     mode(id: UUID!): Mode
-    modes(first: Int!, after: UUID): [Mode]!
+    modes(first: Int!, after: UUID): [Mode]
 
     # countries missing modes by countries
     country(id: UUID!): Country
-    countries(first: Int!, after: UUID): [Country]!
+    countries(first: Int!, after: UUID): [Country]
 
 }

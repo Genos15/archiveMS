@@ -90,12 +90,11 @@ class CountryRepositoryImpl(
             .awaitFirstOrElse { Optional.empty() }
     }
 
-    override suspend fun countries(first: Int, after: UUID?, token: UUID): Iterable<Country> {
+    override suspend fun countries(first: Int, after: UUID?): Iterable<Country> {
         val query = qr.l("query.retrieve.country")
         return dbClient.exec(query = query)
             .bind("first", first)
             .bind("after", parameterOrNull(after))
-            .bind("token", token)
             .map(mapper::list)
             .first()
             .doOnError { logger.error { it.message } }

@@ -3,8 +3,6 @@ package com.thintwice.archive.mbompay.middleware
 import com.thintwice.archive.mbompay.domain.exception.BadRequestException
 import graphql.ErrorType
 import graphql.GraphQLError
-import mu.KLogger
-import mu.KotlinLogging
 import org.springframework.graphql.server.WebGraphQlInterceptor
 import org.springframework.graphql.server.WebGraphQlRequest
 import org.springframework.graphql.server.WebGraphQlResponse
@@ -14,7 +12,7 @@ import java.util.stream.Collectors
 
 
 @Component
-class ErrorMiddleware(private val logger: KLogger = KotlinLogging.logger {}) : WebGraphQlInterceptor {
+class ErrorMiddleware : WebGraphQlInterceptor {
     override fun intercept(request: WebGraphQlRequest, chain: WebGraphQlInterceptor.Chain): Mono<WebGraphQlResponse> {
         // check if we have errors
         return chain.next(request).map { response ->
@@ -27,7 +25,6 @@ class ErrorMiddleware(private val logger: KLogger = KotlinLogging.logger {}) : W
             if (graphQLErrors.isNotEmpty()) {
                 return@map response.transform { builder -> builder.errors(graphQLErrors) }
             }
-            logger.info { "\nErrorMiddleware → done" }
             response
         }
     }

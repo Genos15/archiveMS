@@ -109,7 +109,32 @@ class OneTimePasswordImpl(
     }
 
     override suspend fun refresh(refreshToken: String): JwtToken {
-        TODO("Not yet implemented")
+        val query = qr.l("mutation.jwt.token.refresh")
+
+        val decodedToken = jwtService.decodeRefreshToken(refreshToken)
+        val expiredAt = ZonedDateTime
+            .now()
+            .plusMinutes(15)
+            .toInstant()
+            .toEpochMilli()
+
+        val accessToken = jwtService.accessToken(
+            username = decodedToken.subject,
+            roles = arrayOf(),
+            expirationInMillis = expiredAt
+        )
+
+        val token = JwtToken(accessToken = accessToken, refreshToken = refreshToken, expiredAt = expiredAt)
+
+        return dbClient.exec(query = query)
+            .bind("input", jsonOf(token))
+            .map(jwtMapper::factory)
+            .first().log()
+            .doOnError { println { it.message } }
+            .onErrorResume {
+                Mono.error(InternalException(source = it.message))
+            }.awaitFirstOrElse { Optional.empty() }
+            .orElseThrow { InternalException("impossible to build token") }
     }
 
     protected fun createRandomOneTimePassword(): CharSequence {

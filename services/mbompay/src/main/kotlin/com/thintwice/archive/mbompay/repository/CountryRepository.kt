@@ -9,7 +9,7 @@ import java.util.*
 interface CountryRepository {
     suspend fun loadCountriesFromClassPath(): Iterable<CountryDto>
     suspend fun country(id: UUID, token: UUID): Optional<Country>
-    suspend fun countries(first: Int, after: UUID? = null, token: UUID): Iterable<Country>
+    suspend fun countries(first: Int, after: UUID? = null): Iterable<Country>
     suspend fun modes(countries: List<Country>, token: UUID? = null): Map<Country, Iterable<Mode>>
 
 }

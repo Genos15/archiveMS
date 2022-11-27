@@ -1,14 +1,25 @@
 package com.thintwice.archive.mbompay.domain.exception
 
+import com.thintwice.archive.mbompay.domain.exception.InvalidTokenException.State.*
 import graphql.ErrorClassification
 import graphql.ErrorType
 import graphql.GraphQLError
 import graphql.language.SourceLocation
 
-class InvalidTokenException : GraphQLError {
-    override fun getMessage(): String = "invalid token"
+class InvalidTokenException(private val cause: String? = null, val state: State = INVALID) : GraphQLError {
+    override fun getMessage(): String = when {
+        cause != null -> cause
+        state == INVALID -> "invalid token"
+        state == EXPIRED -> "token is expired"
+        else -> "something went wrong!"
+    }
 
     override fun getLocations(): MutableList<SourceLocation> = mutableListOf()
 
     override fun getErrorType(): ErrorClassification = ErrorType.ValidationError
+
+    enum class State {
+        INVALID,
+        EXPIRED
+    }
 }
