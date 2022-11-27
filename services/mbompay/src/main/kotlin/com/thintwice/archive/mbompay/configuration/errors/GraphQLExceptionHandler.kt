@@ -11,7 +11,7 @@ import mu.KotlinLogging
 import org.springframework.graphql.execution.DataFetcherExceptionResolverAdapter
 import org.springframework.stereotype.Component
 
-@Component
+//@Component
 class GraphQLExceptionHandler(
     private val logger: KLogger = KotlinLogging.logger {},
 ) : DataFetcherExceptionResolverAdapter() {

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:remove="all">Welcome back to Jesend</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+<p th:if="${name.length() gt 1}" th:text="#{greeting(${name})}">
+    Hi,
+</p>
+<p th:text="#{otp_message(${code})}"></p>
+<p>
+    Regards, <br />
+    &emsp; <em th:text="#{jesend_type_signature}"></em>
+</p>
+</body>
+</html>

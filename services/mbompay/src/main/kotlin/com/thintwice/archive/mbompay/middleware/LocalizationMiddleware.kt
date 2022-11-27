@@ -9,7 +9,7 @@ import org.springframework.graphql.server.WebGraphQlResponse
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
-@Component
+//@Component
 class LocalizationMiddleware(private val logger: KLogger = KotlinLogging.logger {}) : WebGraphQlInterceptor {
     override fun intercept(request: WebGraphQlRequest, chain: WebGraphQlInterceptor.Chain): Mono<WebGraphQlResponse> {
         // check if we have the longitude, latitude and the language

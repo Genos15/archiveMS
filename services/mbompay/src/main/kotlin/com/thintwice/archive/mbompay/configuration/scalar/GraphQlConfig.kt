@@ -24,14 +24,3 @@ class GraphQlConfig {
         return RuntimeWiringConfigurer { wiringBuilder: RuntimeWiring.Builder -> wiringBuilder.scalar(ExtendedScalars.DateTime) }
     }
 }
-
-
-//Any::class -> ExtendedScalars.Json
-//Map::class -> ExtendedScalars.Object
-//OffsetDateTime::class -> ExtendedScalars.DateTime
-//OffsetTime::class -> ExtendedScalars.Time
-//BigDecimal::class -> ExtendedScalars.GraphQLBigDecimal
-//Long::class -> ExtendedScalars.GraphQLLong
-//Part::class -> ApolloScalars.Upload
-//UUID::class -> ExtendedScalars.UUID
-//else -> null

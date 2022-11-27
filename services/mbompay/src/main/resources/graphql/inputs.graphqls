@@ -1,14 +1,44 @@
-input ProviderInput {
+input BankCardInput {
     id: UUID
     name: String
-    type: ProvidersType
-    marks: [String]
-    logo: UUID
+    bcNumber: String
+    bcExpiredMonth: Int
+    bcExpiredYear: Int
+    bcCvc: String
 }
 
-input CardInput {
+input UserInput {
     id: UUID
-    number: String
-    expiredAt: DateTime #format -> 2020-12-09T16:09:53-00:00
-    providerId: UUID
+    phone: String
+    email: String
+}
+
+input OperatorInput {
+    id: UUID
+    name: String
+    phone: String
+    email: String
+    passwordHash: String
+    countryId: UUID
+}
+
+input CustomerInput {
+    id: UUID
+    name: String
+    countryId: UUID
+    city: String
+    addressLine: String
+    postalCode: String
+    state: String
+    phone: String
+    email: String
+    identityDocument: UUID
+}
+
+input ModeInput {
+    id: UUID
+    name: String
+    countryId: UUID
+    marks: [String]
+    logo: UUID
 }

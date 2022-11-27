@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import java.util.UUID
 
-@Component
+//@Component
 class SessionMiddleware(private val logger: KLogger = KotlinLogging.logger {}) : WebGraphQlInterceptor {
     override fun intercept(request: WebGraphQlRequest, chain: WebGraphQlInterceptor.Chain): Mono<WebGraphQlResponse> {
         // check if we have the imei

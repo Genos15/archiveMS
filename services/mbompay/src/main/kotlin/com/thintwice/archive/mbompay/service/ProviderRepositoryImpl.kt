@@ -1,5 +1,6 @@
 package com.thintwice.archive.mbompay.service
 
+import com.thintwice.archive.mbompay.configuration.bundle.RB
 import com.thintwice.archive.mbompay.domain.common.jsonOf
 import com.thintwice.archive.mbompay.domain.input.ProviderInput
 import com.thintwice.archive.mbompay.domain.mapper.ProviderMapper
@@ -15,6 +16,7 @@ import java.util.*
 
 @Service
 class ProviderRepositoryImpl(
+    private val qr: RB,
     private val database: DatabaseClient,
     private val mapper: ProviderMapper,
     private val logger: KLogger = KotlinLogging.logger {},
