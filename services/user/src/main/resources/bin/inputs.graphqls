@@ -1,6 +1,0 @@
-input UserInput {
-    id: ID!
-    firstname: String
-    lastname: String
-    photo: String
-}

@@ -1,7 +1,0 @@
-type Token {
-    id: ID!
-    accessToken: ID!
-    refreshToken: ID!
-    verified: Boolean!
-    expiredIn: Long!
-}

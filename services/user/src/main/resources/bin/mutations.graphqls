@@ -1,4 +1,0 @@
-type Mutation {
-    edit(input: UserInput!): User
-    delete(id: ID!): Boolean
-}

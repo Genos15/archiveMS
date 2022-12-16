@@ -1,6 +1,0 @@
-type Query {
-    category(id: ID!): Category
-    categories (first: Int!, after: ID): CategoryConnection
-    search (text: String!, first: Int!, after: ID): CategoryConnection
-    count: Long
-}

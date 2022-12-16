@@ -28,9 +28,6 @@ class CustomerReactiveUserDetailsService(
 
     override fun findByUsername(username: String?): Mono<UserDetails> {
         val query = qr.l("mutation.jwt.token.authenticate")
-        println("""
-            -- authenticate before
-        """.trimIndent())
         return dbClient.exec(query = query)
             .bind("token", parameterOrNull(username))
             .map(mapper::factory)
@@ -42,9 +39,6 @@ class CustomerReactiveUserDetailsService(
                     return@handle sink.error(UsernameNotFoundException("invalid credentials"))
                 }
             }.map {
-                println("""
-                    -- authenticate after
-                """.trimIndent())
                 val decodeAccessToken = jwtService.decodeAccessToken(it.accessToken)
                 val expiredAt: Instant = decodeAccessToken.expiresAt.toInstant()
                 val useRole = generateUserRole(it.userRole)

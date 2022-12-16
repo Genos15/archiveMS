@@ -9,3 +9,5 @@ target
 **/*.js
 **/*.sql
 **/*.properties
+**/*.graphqls
+**/resources
