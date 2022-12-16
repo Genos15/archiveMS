@@ -1,7 +1,0 @@
-type Mutation {
-    createOrEdit(input: ArticleInput) : Article
-    delete(id: ID!) : Boolean
-    addInWishlist(id: ID!) : Article
-    removeInWishlist(id: ID!) : Boolean
-    sell(id: ID!) : Article
-}

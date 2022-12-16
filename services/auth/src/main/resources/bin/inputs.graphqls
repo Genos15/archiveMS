@@ -1,4 +1,0 @@
-input TokenInput {
-    phone: String!
-    code: String
-}

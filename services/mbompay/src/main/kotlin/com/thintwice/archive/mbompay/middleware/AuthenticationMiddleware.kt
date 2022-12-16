@@ -24,8 +24,6 @@ class AuthenticationMiddleware(private val service: ReactiveUserDetailsService) 
 
         val operationName = readGraphQLDocumentName(document = queryLines)
 
-        println("-- operationName = $operationName")
-
         if (EXCLUDED_PATHS.contains(operationName)) {
             return chain.next(request)
         }
@@ -95,7 +93,12 @@ class AuthenticationMiddleware(private val service: ReactiveUserDetailsService) 
 
     private fun readGraphQLDocumentName(document: String): String? {
         return try {
-            document.trim { it <= ' ' }.replace("{", "∞").replace("(", "∞").split("∞").getOrNull(1)?.trim { it <= ' ' }
+            val documentLocationNameIndex = if (document.split("(").size > 2) 2 else 1
+            document.trim { it <= ' ' }
+                .replace("{", "∞")
+                .replace("(", "∞")
+                .split("∞")
+                .getOrNull(documentLocationNameIndex)?.trim { it <= ' ' }
         } catch (e: Exception) {
             e.printStackTrace()
             null

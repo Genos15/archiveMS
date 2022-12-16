@@ -1,9 +1,0 @@
-type Query {
-    article(id: ID): Article
-    articles(first: Int!, after: ID): ArticleConnection
-    search(text: String!, first: Int!, after: ID): ArticleConnection
-    categoryArticles(id:ID!, first: Int!, after: ID): ArticleConnection
-    userArticles(id:ID!, first: Int!, after: ID): ArticleConnection
-    myArticles(first: Int!, after: ID): ArticleConnection
-    myWishlist(first: Int!, after: ID): ArticleConnection
-}

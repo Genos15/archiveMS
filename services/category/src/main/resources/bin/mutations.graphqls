@@ -1,4 +1,0 @@
-type Mutation {
-    createOrEdit(input: CategoryInput!): Category
-    delete(id: ID!): Boolean
-}
