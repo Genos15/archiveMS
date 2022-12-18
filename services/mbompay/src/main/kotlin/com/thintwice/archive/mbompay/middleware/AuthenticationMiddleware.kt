@@ -1,5 +1,6 @@
 package com.thintwice.archive.mbompay.middleware
 
+import com.thintwice.archive.mbompay.domain.exception.InternalException
 import com.thintwice.archive.mbompay.domain.exception.InvalidTokenException
 import com.thintwice.archive.mbompay.domain.model.AuthUser
 import org.springframework.dao.DataAccessResourceFailureException
@@ -17,29 +18,39 @@ import reactor.core.publisher.Mono
 @Component
 class AuthenticationMiddleware(private val service: ReactiveUserDetailsService) : WebGraphQlInterceptor {
     override fun intercept(request: WebGraphQlRequest, chain: WebGraphQlInterceptor.Chain): Mono<WebGraphQlResponse> {
-        val queryLines = request.document.split("\n")
-            .filterNot { it.contains("#") }
-            .filter { it.isNotEmpty() }
+        val queryLines = request.document.split("\n").filterNot { it.contains("#") }.filter { it.isNotEmpty() }
             .joinToString(separator = "")
 
         val operationName = readGraphQLDocumentName(document = queryLines)
 
+        val authorizationHeader = request.headers.getFirst(HttpHeaders.AUTHORIZATION) ?: ""
+        val hasAuthorizationHeader =
+            authorizationHeader.trim { it <= ' ' }.isNotEmpty() && authorizationHeader.trim { it <= ' ' }
+                .startsWith(AUTH_HEADER_VALUE_PREFIX)
+
+        if (hasAuthorizationHeader) {
+            val contextMap = mutableMapOf<String, Any>()
+            contextMap["token"] = authorizationHeader
+            request.configureExecutionInput { _, builder ->
+                builder.graphQLContext(contextMap).build()
+            }
+        }
+
         if (EXCLUDED_PATHS.contains(operationName)) {
+            if (hasAuthorizationHeader) {
+                val authentication = UsernamePasswordAuthenticationToken(authorizationHeader, authorizationHeader)
+                return chain.next(request).contextWrite(
+                    ReactiveSecurityContextHolder.withAuthentication(authentication)
+                )
+            }
             return chain.next(request)
         }
 
-        val authorizationHeader = request.headers.getFirst(HttpHeaders.AUTHORIZATION) ?: ""
 
         return Mono.just(authorizationHeader).flatMap { header ->
-            val hasAuthorizationHeader =
-                header.trim { it <= ' ' }
-                    .isNotEmpty() && header.trim { it <= ' ' }
-                    .startsWith(AUTH_HEADER_VALUE_PREFIX)
 
             return@flatMap if (hasAuthorizationHeader) {
-
-                Mono.just(header).map { it.substring(AUTH_HEADER_VALUE_PREFIX.length) }
-                    .flatMap(service::findByUsername)
+                Mono.just(header).map { it.substring(AUTH_HEADER_VALUE_PREFIX.length) }.flatMap(service::findByUsername)
                     .flatMap {
                         val contextMap = mutableMapOf<String, Any>()
                         contextMap["token"] = it.username
@@ -49,9 +60,7 @@ class AuthenticationMiddleware(private val service: ReactiveUserDetailsService) 
 //                        val context: SecurityContext = SecurityContextHolder.createEmptyContext()
                         val authentication: Authentication = if (it is AuthUser) {
                             UsernamePasswordAuthenticationToken(
-                                it.username,
-                                it.password,
-                                it.authorities
+                                it.username, it.password, it.authorities
                             )
                         } else {
                             UsernamePasswordAuthenticationToken(it.username, it.password)
@@ -94,10 +103,7 @@ class AuthenticationMiddleware(private val service: ReactiveUserDetailsService) 
     private fun readGraphQLDocumentName(document: String): String? {
         return try {
             val documentLocationNameIndex = if (document.split("(").size > 2) 2 else 1
-            document.trim { it <= ' ' }
-                .replace("{", "∞")
-                .replace("(", "∞")
-                .split("∞")
+            document.trim { it <= ' ' }.replace("{", "∞").replace("(", "∞").split("∞")
                 .getOrNull(documentLocationNameIndex)?.trim { it <= ' ' }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -111,7 +117,8 @@ class AuthenticationMiddleware(private val service: ReactiveUserDetailsService) 
         private const val SCHEMA_QUERY_NAME = "__schema"
         private const val OTP_QUERY_NAME = "otp"
         private const val CONNECT_QUERY_NAME = "connect"
+        private const val REFRESH_QUERY_NAME = "refresh"
         private val EXCLUDED_PATHS =
-            arrayOf(INTROSPECTION_QUERY_NAME, OTP_QUERY_NAME, CONNECT_QUERY_NAME, SCHEMA_QUERY_NAME)
+            arrayOf(INTROSPECTION_QUERY_NAME, OTP_QUERY_NAME, CONNECT_QUERY_NAME, SCHEMA_QUERY_NAME, REFRESH_QUERY_NAME)
     }
 }

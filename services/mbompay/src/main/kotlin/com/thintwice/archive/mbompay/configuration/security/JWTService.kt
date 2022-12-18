@@ -36,16 +36,18 @@ class JWTService(qr: RB) {
         .map { SimpleGrantedAuthority(it) }
 
     private fun generate(username: String, expirationInMillis: Long, roles: Array<String>, signature: String): String {
+        val secretKey = signature.toByteArray()
         return JWT.create()
             .withSubject(username)
             .withExpiresAt(Date(System.currentTimeMillis() + expirationInMillis))
             .withArrayClaim("role", roles)
-            .sign(Algorithm.HMAC512(signature.toByteArray()))
+            .sign(Algorithm.HMAC512(secretKey))
     }
 
     private fun decode(signature: String, token: String): DecodedJWT {
-        return JWT.require(Algorithm.HMAC512(signature.toByteArray()))
+        val secretKey = signature.toByteArray()
+        return JWT.require(Algorithm.HMAC512(secretKey))
             .build()
-            .verify(token.replace("Bearer ", ""))
+            .verify(token.replace("bearer ", "", ignoreCase = true))
     }
 }

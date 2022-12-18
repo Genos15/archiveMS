@@ -124,7 +124,8 @@ class OneTimePasswordImpl(
             expirationInMillis = expiredAt
         )
 
-        val token = JwtToken(accessToken = accessToken, refreshToken = refreshToken, expiredAt = expiredAt)
+        val refreshTokenTransformed = refreshToken.replace("bearer ", "", ignoreCase = true)
+        val token = JwtToken(accessToken = accessToken, refreshToken = refreshTokenTransformed, expiredAt = expiredAt)
 
         return dbClient.exec(query = query)
             .bind("input", jsonOf(token))
