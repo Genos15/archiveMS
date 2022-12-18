@@ -24,14 +24,13 @@ class AuthController(
 
     @MutationMapping(name = "otp")
     suspend fun otp(@Argument input: String): Long {
-        println("in otp method")
         val oneTimePassword = otpService.generate(ownerContact = input, locale = Locale.FRENCH)
         return oneTimePassword.expiredAt
     }
 
     @MutationMapping(name = "refresh")
-    suspend fun refresh(@ContextValue token: String, auth: Authentication): JwtToken =
-        otpService.refresh(refreshToken = token)
+    suspend fun refresh(auth: Authentication): JwtToken =
+        otpService.refresh(refreshToken = "${auth.credentials}")
 
     @PreAuthorize("hasAnyRole('ADMIN')")
     @MutationMapping(name = "deleteUser")
