@@ -1,6 +1,5 @@
 package com.thintwice.archive.mbompay.middleware
 
-import com.thintwice.archive.mbompay.domain.exception.InternalException
 import com.thintwice.archive.mbompay.domain.exception.InvalidTokenException
 import com.thintwice.archive.mbompay.domain.model.AuthUser
 import org.springframework.dao.DataAccessResourceFailureException
@@ -118,7 +117,14 @@ class AuthenticationMiddleware(private val service: ReactiveUserDetailsService) 
         private const val OTP_QUERY_NAME = "otp"
         private const val CONNECT_QUERY_NAME = "connect"
         private const val REFRESH_QUERY_NAME = "refresh"
-        private val EXCLUDED_PATHS =
-            arrayOf(INTROSPECTION_QUERY_NAME, OTP_QUERY_NAME, CONNECT_QUERY_NAME, SCHEMA_QUERY_NAME, REFRESH_QUERY_NAME)
+        private const val CUSTOMER_MUTATION_NAME = "customer"
+        private val EXCLUDED_PATHS = arrayOf(
+            INTROSPECTION_QUERY_NAME,
+            OTP_QUERY_NAME,
+            CONNECT_QUERY_NAME,
+            SCHEMA_QUERY_NAME,
+            REFRESH_QUERY_NAME,
+            CUSTOMER_MUTATION_NAME,
+        )
     }
 }

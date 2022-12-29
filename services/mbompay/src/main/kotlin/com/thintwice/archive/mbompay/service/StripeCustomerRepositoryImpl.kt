@@ -15,41 +15,44 @@ class StripeCustomerRepositoryImpl(sr: RB) : StripeCustomerRepository {
 
     override fun create(input: CustomerInput): CustomerInput {
         Stripe.apiKey = secretApiKey
-        val customer = Customer.create(input.toMap())
-        input.stripeCustomerId = customer.id
-        return input
+//        val customer = Customer.create(input.toMap())
+//        input.stripeCustomerId = customer.id
+//        return input
+        TODO("Not yet implemented")
     }
 
     override fun update(input: CustomerInput): CustomerInput {
-        if (input.stripeCustomerId == null) return input
-        Stripe.apiKey = secretApiKey
-        val customer = Customer.retrieve(input.stripeCustomerId)
-        val updatedCustomer = customer.update(input.toMap())
-        input.stripeCustomerId = updatedCustomer.id
-        return input
+//        if (input.stripeCustomerId == null) return input
+//        Stripe.apiKey = secretApiKey
+//        val customer = Customer.retrieve(input.stripeCustomerId)
+//        val updatedCustomer = customer.update(input.toMap())
+//        input.stripeCustomerId = updatedCustomer.id
+//        return input
+        TODO("Not yet implemented")
     }
 
     override fun delete(input: CustomerInput): Boolean {
-        Stripe.apiKey = secretApiKey
-        val customer = Customer.retrieve(input.stripeCustomerId)
-        val deletedCustomer = customer.delete()
-        return deletedCustomer.deleted
+//        Stripe.apiKey = secretApiKey
+//        val customer = Customer.retrieve(input.stripeCustomerId)
+//        val deletedCustomer = customer.delete()
+//        return deletedCustomer.deleted
+        TODO("Not yet implemented")
     }
 
     override fun find(input: CustomerInput): Optional<CustomerInput> {
         Stripe.apiKey = secretApiKey
-        val customer = Customer.retrieve(input.stripeCustomerId)
+//        val customer = Customer.retrieve(input.stripeCustomerId)
         val customerInput =
             CustomerInput(
-                name = customer.name,
-                countryId = null,
-                city = customer.address.city,
-                addressLine = customer.address.line1,
-                postalCode = customer.address.postalCode,
-                state = customer.address.state,
-                email = customer.email,
-                phone = customer.phone,
-                stripeCustomerId = customer.id,
+//                name = customer.name,
+//                countryId = null,
+//                city = customer.address.city,
+//                addressLine = customer.address.line1,
+//                postalCode = customer.address.postalCode,
+//                state = customer.address.state,
+//                email = customer.email,
+//                phone = customer.phone,
+//                stripeCustomerId = customer.id,
             )
         return Optional.of(customerInput)
     }
