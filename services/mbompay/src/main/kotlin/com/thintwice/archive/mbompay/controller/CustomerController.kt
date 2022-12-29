@@ -12,16 +12,15 @@ import java.util.*
 @Controller
 class CustomerController(private val service: CustomerRepository) {
 
-    @PreAuthorize("hasAnyRole('CUSTOMER')")
     @MutationMapping(name = "customer")
-    suspend fun customer(@Argument input: CustomerInput, @ContextValue token: UUID): Optional<Customer> {
-        return service.customer(input = input, token = token)
+    suspend fun customer(@Argument input: CustomerInput): Optional<Customer> {
+        return service.customer(input = input)
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER')")
     @QueryMapping(name = "customer")
-    suspend fun customer(@Argument id: UUID, @ContextValue token: UUID): Optional<Customer> {
-        return service.customer(id = id, token = token)
+    suspend fun customer(@Argument id: UUID): Optional<Customer> {
+        return service.customer(id = id)
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'OPERATORS')")
@@ -29,9 +28,8 @@ class CustomerController(private val service: CustomerRepository) {
     suspend fun customers(
         @Argument first: Int,
         @Argument after: UUID? = null,
-        @ContextValue token: UUID,
     ): Iterable<Customer> {
-        return service.customers(first = first, after = after, token = token)
+        return service.customers(first = first, after = after)
     }
 
 }

@@ -19,14 +19,14 @@ data class CustomerDto(
     val customer: Customer
         get() = Customer(
             id = id,
-            name = name,
-            postalCode = postalCode,
-            city = city,
-            email = email,
-            phone = phone,
-            addressLine = addressLine,
-            state = state,
-            isEmailVerified = isEmailVerified,
-            isPhoneVerified = isPhoneVerified
+//            name = name,
+//            postalCode = postalCode,
+//            city = city,
+//            email = email,
+//            phone = phone,
+//            addressLine = addressLine,
+//            state = state,
+//            isEmailVerified = isEmailVerified,
+//            isPhoneVerified = isPhoneVerified
         )
 }

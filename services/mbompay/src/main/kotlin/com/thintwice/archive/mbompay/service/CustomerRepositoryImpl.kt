@@ -24,32 +24,31 @@ class CustomerRepositoryImpl(
     private val stripeService: StripeCustomerRepository,
 ) : CustomerRepository {
 
-    override suspend fun customer(input: CustomerInput, token: UUID): Optional<Customer> {
-        val newInput = if (input.id == null) stripeService.create(input = input) else input
+    override suspend fun customer(input: CustomerInput): Optional<Customer> {
+//        val newInput = if (input.id == null) stripeService.create(input = input) else input
         val query = qr.l("mutation.create.edit.customer")
-        println(newInput)
+//        println(newInput)
         return dbClient.exec(query = query)
-            .bind("input", jsonOf(newInput))
-            .bind("token", token)
-            .map(mapper::factoryDto)
+            .bind("input", jsonOf(input))
+            .map(mapper::factory)
             .first()
             .doOnError { logger.error { it.message } }
-            .map {
-                if (input.id != null) {
-                    input.stripeCustomerId = it?.stripeCustomerId
-                    stripeService.update(input = input)
-                }
-                Optional.ofNullable(it?.customer)
-            }
+//            .map {
+//                if (input.id != null) {
+//                    input.stripeCustomerId = it?.stripeCustomerId
+//                    stripeService.update(input = input)
+//                }
+//                Optional.ofNullable(it?.customer)
+//            }
             .log()
             .awaitFirstOrElse { Optional.empty() }
     }
 
-    override suspend fun customer(id: UUID, token: UUID): Optional<Customer> {
+    override suspend fun customer(id: UUID): Optional<Customer> {
         val query = qr.l("query.find.customer")
         return dbClient.exec(query = query)
             .bind("id", id)
-            .bind("token", token)
+//            .bind("token", token)
             .map(mapper::factory)
             .first()
             .doOnError { logger.error { it.message } }
@@ -57,12 +56,12 @@ class CustomerRepositoryImpl(
             .awaitFirstOrElse { Optional.empty() }
     }
 
-    override suspend fun customers(first: Int, after: UUID?, token: UUID): Iterable<Customer> {
+    override suspend fun customers(first: Int, after: UUID?): Iterable<Customer> {
         val query = qr.l("query.retrieve.customer")
         return dbClient.exec(query = query)
             .bind("first", first)
             .bind("after", Parameter.fromOrEmpty(after, UUID::class.java))
-            .bind("token", token)
+//            .bind("token", token)
             .map(mapper::list)
             .first()
             .doOnError { logger.error { it.message } }
