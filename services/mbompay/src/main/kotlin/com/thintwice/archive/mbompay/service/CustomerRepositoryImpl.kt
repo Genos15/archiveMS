@@ -32,7 +32,7 @@ class CustomerRepositoryImpl(
             .bind("input", jsonOf(input))
             .map(mapper::factory)
             .first()
-            .doOnError { logger.error { it.message } }
+            .doOnError { println("error = ${it.message}") }
 //            .map {
 //                if (input.id != null) {
 //                    input.stripeCustomerId = it?.stripeCustomerId

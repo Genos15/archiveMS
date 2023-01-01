@@ -6,9 +6,10 @@ import graphql.ErrorType
 import graphql.GraphQLError
 import graphql.language.SourceLocation
 
-class InvalidTokenException(private val cause: String? = null, val state: State = INVALID) : GraphQLError {
+class InvalidTokenException(private val cause: String? = null, private val state: State = UNKNOWN) : GraphQLError {
     override fun getMessage(): String = when {
         cause != null -> cause
+        state == UNKNOWN -> "something went wrong"
         state == INVALID -> "invalid token"
         state == EXPIRED -> "token is expired"
         else -> "something went wrong!"
@@ -20,6 +21,7 @@ class InvalidTokenException(private val cause: String? = null, val state: State 
 
     enum class State {
         INVALID,
+        UNKNOWN,
         EXPIRED
     }
 }
