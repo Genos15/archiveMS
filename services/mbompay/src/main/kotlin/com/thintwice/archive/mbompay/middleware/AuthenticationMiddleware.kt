@@ -43,44 +43,46 @@ class AuthenticationMiddleware(private val service: ReactiveUserDetailsService) 
                 )
             }
             return chain.next(request)
-        }
-
-
-        return Mono.just(authorizationHeader).flatMap { header ->
-
-            return@flatMap if (hasAuthorizationHeader) {
-                Mono.just(header).map { it.substring(AUTH_HEADER_VALUE_PREFIX.length) }.flatMap(service::findByUsername)
-                    .flatMap {
-                        val contextMap = mutableMapOf<String, Any>()
-                        contextMap["token"] = it.username
-                        request.configureExecutionInput { _, builder ->
-                            builder.graphQLContext(contextMap).build()
-                        }
+        } else {
+            return Mono.just(authorizationHeader)
+                .flatMap { header ->
+                    return@flatMap if (hasAuthorizationHeader) {
+                        Mono.just(header)
+                            .map { it.substring(AUTH_HEADER_VALUE_PREFIX.length) }
+                            .flatMap(service::findByUsername)
+                            .flatMap {
+                                val contextMap = mutableMapOf<String, Any>()
+                                contextMap["token"] = it.username
+                                request.configureExecutionInput { _, builder ->
+                                    builder.graphQLContext(contextMap).build()
+                                }
 //                        val context: SecurityContext = SecurityContextHolder.createEmptyContext()
-                        val authentication: Authentication = if (it is AuthUser) {
-                            UsernamePasswordAuthenticationToken(
-                                it.username, it.password, it.authorities
-                            )
-                        } else {
-                            UsernamePasswordAuthenticationToken(it.username, it.password)
-                        }
+                                val authentication: Authentication = if (it is AuthUser) {
+                                    UsernamePasswordAuthenticationToken(
+                                        it.username, it.password, it.authorities
+                                    )
+                                } else {
+                                    UsernamePasswordAuthenticationToken(it.username, it.password)
+                                }
 //                        context.authentication = authentication
 //                        SecurityContextHolder.setContext(context)
-                        chain.next(request).contextWrite(
-                            ReactiveSecurityContextHolder.withAuthentication(authentication)
-                        )
-                    }.onErrorResume { error ->
-                        error.printStackTrace()
-                        handleError(error, chain, request)
+                                chain.next(request).contextWrite(
+                                    ReactiveSecurityContextHolder.withAuthentication(authentication)
+                                )
+                            }.onErrorResume { error ->
+                                error.printStackTrace()
+                                handleError(error, chain, request)
+                            }
+                    } else {
+                        chain.next(request).map { response ->
+                            response.transform {
+                                it.errors(listOf(InvalidTokenException()))
+                            }
+                        }.contextWrite(ReactiveSecurityContextHolder.clearContext())
                     }
-            } else {
-                chain.next(request).map { response ->
-                    response.transform {
-                        it.errors(listOf(InvalidTokenException()))
-                    }
-                }.contextWrite(ReactiveSecurityContextHolder.clearContext())
-            }
+                }
         }
+
     }
 
     private fun handleError(
@@ -88,6 +90,8 @@ class AuthenticationMiddleware(private val service: ReactiveUserDetailsService) 
         chain: WebGraphQlInterceptor.Chain,
         request: WebGraphQlRequest,
     ): Mono<WebGraphQlResponse> {
+        println("\n\n + in handleError\n\n")
+
         var cause: String? = null
         if (error is DataAccessResourceFailureException && error.rootCause != null) {
             cause = error.rootCause!!.message
@@ -102,7 +106,11 @@ class AuthenticationMiddleware(private val service: ReactiveUserDetailsService) 
     private fun readGraphQLDocumentName(document: String): String? {
         return try {
             val documentLocationNameIndex = if (document.split("(").size > 2) 2 else 1
-            document.trim { it <= ' ' }.replace("{", "∞").replace("(", "∞").split("∞")
+            document.trim { it <= ' ' }
+                .replace("{", "∞")
+                .replace("(", "∞")
+                .replace("__typename", "")
+                .split("∞")
                 .getOrNull(documentLocationNameIndex)?.trim { it <= ' ' }
         } catch (e: Exception) {
             e.printStackTrace()
