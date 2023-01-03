@@ -12,6 +12,7 @@ class InvalidTokenException(private val cause: String? = null, private val state
         state == UNKNOWN -> "something went wrong"
         state == INVALID -> "invalid token"
         state == EXPIRED -> "token is expired"
+        state == NO_ACCESS -> "access denied"
         else -> "something went wrong!"
     }
 
@@ -22,6 +23,7 @@ class InvalidTokenException(private val cause: String? = null, private val state
     enum class State {
         INVALID,
         UNKNOWN,
-        EXPIRED
+        EXPIRED,
+        NO_ACCESS
     }
 }

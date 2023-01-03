@@ -11,7 +11,7 @@ import java.util.*
 
 @Controller
 class CustomerController(private val service: CustomerRepository) {
-
+    @PreAuthorize("hasAnyRole('FIREBASE')")
     @MutationMapping(name = "customer")
     suspend fun customer(@Argument input: CustomerInput): Optional<Customer> {
         return service.customer(input = input)

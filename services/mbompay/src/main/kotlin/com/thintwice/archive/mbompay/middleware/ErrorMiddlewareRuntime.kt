@@ -14,15 +14,17 @@ import java.util.*
 
 @Order(-2)
 @Component
-class ErrorMiddlewareRuntime: DataFetcherExceptionResolverAdapter() {
+class ErrorMiddlewareRuntime : DataFetcherExceptionResolverAdapter() {
     override fun resolveToSingleError(e: Throwable, env: DataFetchingEnvironment): GraphQLError? {
-        println("""
+        println(
+            """
             -- ErrorMiddlewareRuntime
-            -- message = ${e.message}
-        """.trimIndent())
-        e.printStackTrace()
+            -- message = ${e.message} ${e.javaClass}
+        """.trimIndent()
+        )
         return when (e) {
             is NotFoundException -> toGraphQLError(e)
+            is AccessDeniedException -> toGraphQLError(e)
             is DataAccessResourceFailureException -> BadRequestException(message = e.message)
             is Exception -> BadRequestException(message = e.message)
             else -> super.resolveToSingleError(e, env)
