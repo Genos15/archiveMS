@@ -4,16 +4,6 @@ import java.util.*
 
 data class Customer(
     val id: UUID,
-//    val name: String,
-//    val country: Country? = null,
-//    val city: String? = null,
-//    val addressLine: String? = null,
-//    val postalCode: String? = null,
-//    val state: String? = null,
-//    val email: String,
-//    val phone: String,
-//    val isPhoneVerified: Boolean? = false,
-//    val isEmailVerified: Boolean? = null,
     val displayName: String? = null,
     val email: String? = null,
     val emailVerified: Boolean? = false,
@@ -24,5 +14,6 @@ data class Customer(
     val providerId: String? = null,
     val providerUid: String? = null,
     val firebaseUid: String? = null,
-) /*: User(id = id, name = name, email = email, phone = phone)*/
+    val jwtToken: JwtToken? = null,
+)
 

@@ -67,36 +67,11 @@ class OneTimePasswordImpl(
             .awaitFirstOrElse { Optional.empty() }
             .orElseThrow { InternalException("invalid credentials") }
 
-        val expiredAccessToken = ZonedDateTime
-            .now()
-            .plusMinutes(15)
-            .toInstant()
-            .toEpochMilli()
-
-        val expiredRefreshToken = ZonedDateTime
-            .now()
-            .plusDays(10)
-            .toInstant()
-            .toEpochMilli()
-
-        val accessToken = jwtService.accessToken(
-            username = credentials.getUsername(),
-            roles = arrayOf(credentials.getUserRole()),
-            expirationInMillis = expiredAccessToken
-        )
-
-        val refreshToken = jwtService.refreshToken(
-            username = credentials.getUsername(),
-            roles = arrayOf(credentials.getUserRole()),
-            expirationInMillis = expiredRefreshToken
-        )
-
         val createJwtTokenQuery = qr.l("mutation.jwt.token.create")
 
-        val jwtToken = JwtToken(
-            accessToken = accessToken,
-            refreshToken = refreshToken,
-            expiredAt = expiredAccessToken
+        val jwtToken = jwtService.generateJwtToken(
+            username = credentials.getUsername(),
+            roles = arrayOf(credentials.getUserRole())
         )
 
         return dbClient.exec(query = createJwtTokenQuery)
