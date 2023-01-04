@@ -47,6 +47,9 @@ class FirebaseAuthHandler(
             throw Exception("something went wrong")
         }
     } catch (e: Exception) {
+        println("""
+            -- getFirebaseDecodedToken = ${e.message}
+        """.trimIndent())
         null
     }
 

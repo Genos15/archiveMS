@@ -2,6 +2,7 @@ package com.thintwice.archive.mbompay.controller
 
 import com.thintwice.archive.mbompay.domain.input.CustomerInput
 import com.thintwice.archive.mbompay.domain.model.Customer
+import com.thintwice.archive.mbompay.domain.model.JwtToken
 import com.thintwice.archive.mbompay.repository.CustomerRepository
 import org.springframework.graphql.data.method.annotation.*
 import org.springframework.security.access.prepost.PreAuthorize
@@ -30,6 +31,12 @@ class CustomerController(private val service: CustomerRepository) {
         @Argument after: UUID? = null,
     ): Iterable<Customer> {
         return service.customers(first = first, after = after)
+    }
+
+    @PreAuthorize("hasAnyRole('FIREBASE')")
+    @BatchMapping(field = "jwtToken")
+    suspend fun jwtToken(customers: List<Customer>): Map<Customer, JwtToken> {
+        return service.jwtToken(customers = customers)
     }
 
 }

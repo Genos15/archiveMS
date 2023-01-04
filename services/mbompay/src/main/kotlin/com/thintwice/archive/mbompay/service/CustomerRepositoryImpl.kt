@@ -2,17 +2,21 @@ package com.thintwice.archive.mbompay.service
 
 import com.thintwice.archive.mbompay.configuration.bundle.RB
 import com.thintwice.archive.mbompay.configuration.database.DbClient
+import com.thintwice.archive.mbompay.configuration.security.JWTService
 import com.thintwice.archive.mbompay.domain.common.jsonOf
 import com.thintwice.archive.mbompay.domain.input.CustomerInput
 import com.thintwice.archive.mbompay.domain.mapper.CustomerMapper
+import com.thintwice.archive.mbompay.domain.mapper.JwtTokenMapper
 import com.thintwice.archive.mbompay.domain.model.Customer
+import com.thintwice.archive.mbompay.domain.model.JwtToken
 import com.thintwice.archive.mbompay.repository.CustomerRepository
-import com.thintwice.archive.mbompay.repository.StripeCustomerRepository
 import kotlinx.coroutines.reactive.awaitFirstOrElse
 import mu.KLogger
 import mu.KotlinLogging
 import org.springframework.r2dbc.core.Parameter
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
+import reactor.core.scheduler.Schedulers
 import java.util.*
 
 @Service
@@ -20,8 +24,11 @@ class CustomerRepositoryImpl(
     private val qr: RB,
     private val dbClient: DbClient,
     private val mapper: CustomerMapper,
+    private val jwtMapper: JwtTokenMapper,
     private val logger: KLogger = KotlinLogging.logger {},
-    private val stripeService: StripeCustomerRepository,
+    private val jwtService: JWTService,
+
+//    private val stripeService: StripeCustomerRepository,
 ) : CustomerRepository {
 
     override suspend fun customer(input: CustomerInput): Optional<Customer> {
@@ -67,5 +74,32 @@ class CustomerRepositoryImpl(
             .doOnError { logger.error { it.message } }
             .log()
             .awaitFirstOrElse { emptyList() }
+    }
+
+    override suspend fun jwtToken(customers: List<Customer>): Map<Customer, JwtToken> {
+        val query = qr.l("mutation.jwt.token.create")
+        return Flux.fromIterable(customers)
+            .filter { it.email != null && it.emailVerified == true }
+            .parallel()
+            .flatMap { customer ->
+                val jwtToken = jwtService.generateJwtToken(
+                    username = customer.email!!,
+                    roles = arrayOf("ROLE_FIREBASE")
+                )
+                dbClient.exec(query = query)
+                    .bind("input", jsonOf(jwtToken))
+                    .bind("username", customer.email)
+                    .map(jwtMapper::factory)
+                    .first()
+                    .map { AbstractMap.SimpleEntry(customer, it.orElseGet { null }) }
+                    .filter { it.value != null }
+            }
+            .runOn(Schedulers.parallel())
+            .sequential()
+            .collectList()
+            .map { entries -> entries.associateBy({ it.key }, { it.value }) }
+            .doOnError { println { it.message } }
+            .log()
+            .awaitFirstOrElse { emptyMap() }
     }
 }
