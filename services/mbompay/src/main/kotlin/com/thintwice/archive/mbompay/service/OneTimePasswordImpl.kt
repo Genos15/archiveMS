@@ -16,6 +16,7 @@ import com.thintwice.archive.mbompay.repository.OneTimePasswordRepository
 import kotlinx.coroutines.reactive.awaitFirstOrElse
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import java.time.Clock
 import java.time.ZonedDateTime
 import java.util.*
 import kotlin.random.Random
@@ -29,12 +30,13 @@ class OneTimePasswordImpl(
     private val notificationService: EmailService,
     private val jwtService: JWTService,
     private val credentialMapper: CredentialMapper,
+    private val clock: Clock,
 ) : OneTimePasswordRepository {
 
     override suspend fun generate(ownerContact: String, locale: Locale): OneTimePassword {
         val generatedCode = createRandomOneTimePassword().toString()
         val expiredAt = ZonedDateTime
-            .now()
+            .now(clock)
             .plusMinutes(5)
             .toInstant()
             .toEpochMilli()

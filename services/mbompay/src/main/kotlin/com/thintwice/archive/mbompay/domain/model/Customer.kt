@@ -1,5 +1,6 @@
 package com.thintwice.archive.mbompay.domain.model
 
+import java.time.OffsetDateTime
 import java.util.*
 
 data class Customer(
@@ -15,5 +16,7 @@ data class Customer(
     val providerUid: String? = null,
     val firebaseUid: String? = null,
     val jwtToken: JwtToken? = null,
+    val address: String? = null,
+    val birthday: OffsetDateTime? = null,
 )
 
