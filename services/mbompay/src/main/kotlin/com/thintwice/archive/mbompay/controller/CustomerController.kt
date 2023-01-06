@@ -19,6 +19,12 @@ class CustomerController(private val service: CustomerRepository) {
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER')")
+    @MutationMapping(name = "customerInfo")
+    suspend fun customerInfo(@Argument input: CustomerInput): Optional<Customer> {
+        return service.customer(input = input)
+    }
+
+    @PreAuthorize("hasAnyRole('CUSTOMER')")
     @QueryMapping(name = "customer")
     suspend fun customer(@Argument id: UUID): Optional<Customer> {
         return service.customer(id = id)

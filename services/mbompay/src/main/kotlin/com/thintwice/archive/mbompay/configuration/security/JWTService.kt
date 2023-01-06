@@ -8,11 +8,12 @@ import com.thintwice.archive.mbompay.configuration.bundle.RB
 import com.thintwice.archive.mbompay.domain.model.JwtToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Service
+import java.time.Clock
 import java.time.ZonedDateTime
 import java.util.Date
 
 @Service
-class JWTService(qr: RB) {
+class JWTService(qr: RB, private val clock: Clock) {
 
     val secret = qr.l("jesend.jwt.secret")
 
@@ -56,13 +57,13 @@ class JWTService(qr: RB) {
 
     fun generateJwtToken(username: String, roles: Array<String>): JwtToken {
         val expiredAccessToken = ZonedDateTime
-            .now()
+            .now(clock)
             .plusMinutes(15)
             .toInstant()
             .toEpochMilli()
 
         val expiredRefreshToken = ZonedDateTime
-            .now()
+            .now(clock)
             .plusDays(10)
             .toInstant()
             .toEpochMilli()
