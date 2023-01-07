@@ -27,26 +27,15 @@ class CustomerRepositoryImpl(
     private val jwtMapper: JwtTokenMapper,
     private val logger: KLogger = KotlinLogging.logger {},
     private val jwtService: JWTService,
-
-//    private val stripeService: StripeCustomerRepository,
 ) : CustomerRepository {
 
     override suspend fun customer(input: CustomerInput): Optional<Customer> {
-//        val newInput = if (input.id == null) stripeService.create(input = input) else input
         val query = qr.l("mutation.create.edit.customer")
-//        println(newInput)
         return dbClient.exec(query = query)
             .bind("input", jsonOf(input))
             .map(mapper::factory)
             .first()
             .doOnError { println("error = ${it.message}") }
-//            .map {
-//                if (input.id != null) {
-//                    input.stripeCustomerId = it?.stripeCustomerId
-//                    stripeService.update(input = input)
-//                }
-//                Optional.ofNullable(it?.customer)
-//            }
             .log()
             .awaitFirstOrElse { Optional.empty() }
     }
@@ -55,7 +44,17 @@ class CustomerRepositoryImpl(
         val query = qr.l("query.find.customer")
         return dbClient.exec(query = query)
             .bind("id", id)
-//            .bind("token", token)
+            .map(mapper::factory)
+            .first()
+            .doOnError { logger.error { it.message } }
+            .log()
+            .awaitFirstOrElse { Optional.empty() }
+    }
+
+    override suspend fun customer(accessToken: String): Optional<Customer> {
+        val query = qr.l("query.find.customer")
+        return dbClient.exec(query = query)
+            .bind("token", accessToken)
             .map(mapper::factory)
             .first()
             .doOnError { logger.error { it.message } }
@@ -68,7 +67,6 @@ class CustomerRepositoryImpl(
         return dbClient.exec(query = query)
             .bind("first", first)
             .bind("after", Parameter.fromOrEmpty(after, UUID::class.java))
-//            .bind("token", token)
             .map(mapper::list)
             .first()
             .doOnError { logger.error { it.message } }

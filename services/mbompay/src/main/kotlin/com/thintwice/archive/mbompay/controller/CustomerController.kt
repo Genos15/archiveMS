@@ -6,6 +6,7 @@ import com.thintwice.archive.mbompay.domain.model.JwtToken
 import com.thintwice.archive.mbompay.repository.CustomerRepository
 import org.springframework.graphql.data.method.annotation.*
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Controller
 import java.util.*
 
@@ -26,7 +27,13 @@ class CustomerController(private val service: CustomerRepository) {
 
     @PreAuthorize("hasAnyRole('CUSTOMER')")
     @QueryMapping(name = "customer")
-    suspend fun customer(@Argument id: UUID): Optional<Customer> {
+    suspend fun customer(authentication: Authentication): Optional<Customer> {
+        return service.customer(accessToken = "${authentication.credentials}")
+    }
+
+    @PreAuthorize("hasAnyRole('CUSTOMER')")
+    @QueryMapping(name = "customerInfo")
+    suspend fun customerInfo(@Argument id: UUID): Optional<Customer> {
         return service.customer(id = id)
     }
 
