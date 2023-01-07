@@ -9,6 +9,7 @@ import java.util.*
 interface CustomerRepository {
     suspend fun customer(input: CustomerInput): Optional<Customer>
     suspend fun customer(id: UUID): Optional<Customer>
+    suspend fun customer(accessToken: String): Optional<Customer>
     suspend fun customers(first: Int, after: UUID? = null): Iterable<Customer>
     suspend fun jwtToken(customers: List<Customer>): Map<Customer, JwtToken>
 }
