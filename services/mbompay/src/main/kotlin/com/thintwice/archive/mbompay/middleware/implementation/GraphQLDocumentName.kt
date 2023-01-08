@@ -25,4 +25,6 @@ class GraphQLDocumentName(private val request: WebGraphQlRequest) {
             null
         }
     }
+
+    fun action(): String = request.document.split(" ").first().trim { it <= ' ' }.lowercase()
 }
