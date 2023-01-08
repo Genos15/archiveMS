@@ -4,6 +4,7 @@ import com.thintwice.archive.mbompay.configuration.bundle.RB
 import com.thintwice.archive.mbompay.configuration.database.DbClient
 import com.thintwice.archive.mbompay.configuration.security.JWTService
 import com.thintwice.archive.mbompay.domain.common.jsonOf
+import com.thintwice.archive.mbompay.domain.common.parameterOrNull
 import com.thintwice.archive.mbompay.domain.input.CustomerInput
 import com.thintwice.archive.mbompay.domain.mapper.CustomerMapper
 import com.thintwice.archive.mbompay.domain.mapper.JwtTokenMapper
@@ -42,8 +43,10 @@ class CustomerRepositoryImpl(
 
     override suspend fun customer(id: UUID): Optional<Customer> {
         val query = qr.l("query.find.customer")
+        val token: String? = null
         return dbClient.exec(query = query)
             .bind("id", id)
+            .bind("token", parameterOrNull(token))
             .map(mapper::factory)
             .first()
             .doOnError { logger.error { it.message } }
@@ -53,7 +56,9 @@ class CustomerRepositoryImpl(
 
     override suspend fun customer(accessToken: String): Optional<Customer> {
         val query = qr.l("query.find.customer")
+        val id: UUID? = null
         return dbClient.exec(query = query)
+            .bind("id", parameterOrNull(id))
             .bind("token", accessToken)
             .map(mapper::factory)
             .first()

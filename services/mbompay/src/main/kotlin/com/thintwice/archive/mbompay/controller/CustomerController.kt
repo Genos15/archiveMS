@@ -28,10 +28,11 @@ class CustomerController(private val service: CustomerRepository) {
     @PreAuthorize("hasAnyRole('CUSTOMER')")
     @QueryMapping(name = "customer")
     suspend fun customer(authentication: Authentication?): Optional<Customer> {
-        if (authentication?.credentials == null) {
+        if (authentication?.name == null) {
             throw RuntimeException("invalid token")
         }
-        return service.customer(accessToken = "${authentication.credentials}")
+
+        return service.customer(accessToken = authentication.name)
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER')")
