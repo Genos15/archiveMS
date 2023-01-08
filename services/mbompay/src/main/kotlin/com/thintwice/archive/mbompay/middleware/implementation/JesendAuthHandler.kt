@@ -1,8 +1,8 @@
 package com.thintwice.archive.mbompay.middleware.implementation
 
-import com.thintwice.archive.mbompay.domain.exception.InvalidTokenException
 import com.thintwice.archive.mbompay.domain.model.AuthUser
-import org.springframework.dao.DataAccessResourceFailureException
+import graphql.GraphQLError
+import graphql.GraphqlErrorBuilder
 import org.springframework.graphql.server.WebGraphQlInterceptor
 import org.springframework.graphql.server.WebGraphQlRequest
 import org.springframework.graphql.server.WebGraphQlResponse
@@ -12,6 +12,8 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import reactor.core.publisher.Mono
+import kotlin.streams.toList
+
 
 class JesendAuthHandler(
     private val request: WebGraphQlRequest,
@@ -22,8 +24,7 @@ class JesendAuthHandler(
     operator fun invoke(): Mono<WebGraphQlResponse> {
         val authHeader = request.headers.getFirst(HttpHeaders.AUTHORIZATION)
         return if (hasAuthHeader(authHeader)) {
-            Mono.just(authHeader!!.substring(AUTH_HEADER_VALUE_PREFIX.length))
-                .flatMap(service::findByUsername)
+            Mono.just(authHeader!!.substring(AUTH_HEADER_VALUE_PREFIX.length)).flatMap(service::findByUsername)
                 .flatMap {
                     val contextMap = mutableMapOf<String, Any>()
                     contextMap["token"] = it.username
@@ -42,14 +43,10 @@ class JesendAuthHandler(
                     )
                 }.onErrorResume { error ->
                     error.printStackTrace()
-                    handleError(error, chain, request)
+                    onError(chain = chain, request = request)
                 }
         } else {
-            chain.next(request).map { response ->
-                response.transform {
-                    it.errors(listOf(InvalidTokenException()))
-                }
-            }.contextWrite(ReactiveSecurityContextHolder.clearContext())
+            chain.next(request).map(this::processResponse).contextWrite(ReactiveSecurityContextHolder.clearContext())
         }
     }
 
@@ -62,21 +59,28 @@ class JesendAuthHandler(
         }
     }
 
-    private fun handleError(
-        error: Throwable?,
+    private fun onError(
         chain: WebGraphQlInterceptor.Chain,
         request: WebGraphQlRequest,
     ): Mono<WebGraphQlResponse> {
         println("-- handler error JesendAuthHandler --")
-        var cause: String? = null
-        if (error is DataAccessResourceFailureException && error.rootCause != null) {
-            cause = error.rootCause!!.message
-        }
-        return chain.next(request).map { response ->
-            response.transform {
-                it.errors(listOf(InvalidTokenException(cause = cause)))
+        return chain.next(request).map(this::processResponse).contextWrite(ReactiveSecurityContextHolder.clearContext())
+    }
+
+    private fun processResponse(response: WebGraphQlResponse): WebGraphQlResponse {
+        return if (response.isValid) {
+            response
+        } else {
+            val errors: List<GraphQLError> = response.errors.stream().map { error ->
+                val builder = GraphqlErrorBuilder.newError()
+                println("-- chain error $error")
+                builder.build()
+            }.toList()
+
+            response.transform { builder ->
+                builder.errors(errors).build()
             }
-        }.contextWrite(ReactiveSecurityContextHolder.clearContext())
+        }
     }
 
     companion object {
