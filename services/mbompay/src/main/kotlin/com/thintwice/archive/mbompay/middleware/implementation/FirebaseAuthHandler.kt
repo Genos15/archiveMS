@@ -1,7 +1,8 @@
 package com.thintwice.archive.mbompay.middleware.implementation
 
 import com.google.firebase.auth.FirebaseAuth
-import com.thintwice.archive.mbompay.domain.exception.InvalidTokenException
+import graphql.GraphQLError
+import graphql.GraphqlErrorBuilder
 import org.springframework.graphql.server.WebGraphQlInterceptor
 import org.springframework.graphql.server.WebGraphQlRequest
 import org.springframework.graphql.server.WebGraphQlResponse
@@ -10,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import reactor.core.publisher.Mono
+import kotlin.streams.toList
 
 
 class FirebaseAuthHandler(
@@ -30,13 +32,14 @@ class FirebaseAuthHandler(
 
             chain.next(request).contextWrite(
                 ReactiveSecurityContextHolder.withAuthentication(authentication)
-            )
+            ).onErrorResume { error ->
+                error.printStackTrace()
+                onError(request = request, chain = chain)
+            }
         } else {
-            chain.next(request).map { response ->
-                response.transform {
-                    it.errors(listOf(InvalidTokenException(state = InvalidTokenException.State.NO_ACCESS)))
-                }
-            }.contextWrite(ReactiveSecurityContextHolder.clearContext())
+            chain.next(request)
+                .map(this::processResponse)
+                .contextWrite(ReactiveSecurityContextHolder.clearContext())
         }
     }
 
@@ -47,9 +50,7 @@ class FirebaseAuthHandler(
             throw Exception("something went wrong")
         }
     } catch (e: Exception) {
-        println("""
-            -- getFirebaseDecodedToken = ${e.message}
-        """.trimIndent())
+        println("-- getFirebaseDecodedToken = ${e.message}")
         null
     }
 
@@ -57,6 +58,30 @@ class FirebaseAuthHandler(
         return authHeader?.trim { it <= ' ' }?.isNotEmpty() ?: false
     }
 
+    private fun onError(chain: WebGraphQlInterceptor.Chain, request: WebGraphQlRequest): Mono<WebGraphQlResponse> {
+        println("-- handler error FirebaseAuthHandler --")
+        return chain.next(request)
+            .map(this::processResponse)
+            .contextWrite(ReactiveSecurityContextHolder.clearContext())
+    }
+
+    private fun processResponse(response: WebGraphQlResponse): WebGraphQlResponse {
+        return if (response.isValid) {
+            response
+        } else {
+            val errors: List<GraphQLError> = response.errors.stream()
+                .map { error ->
+                    val builder = GraphqlErrorBuilder.newError()
+                    println("-- chain error firebase $error")
+                    builder.build()
+                }
+                .toList()
+
+            response.transform { builder ->
+                builder.errors(errors).build()
+            }
+        }
+    }
 
     companion object {
         const val kFIREBASE_DEFAULT_USER_ROLE = "ROLE_FIREBASE"
