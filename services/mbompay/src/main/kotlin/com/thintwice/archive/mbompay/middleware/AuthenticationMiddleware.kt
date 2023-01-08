@@ -14,14 +14,15 @@ class AuthenticationMiddleware(private val service: ReactiveUserDetailsService) 
 
         val nameReader = GraphQLDocumentName(request = request)
         val operationName = nameReader()
+        val actionName = nameReader.action()
 
         return when {
-            kEXCLUDED_PATHS.contains(operationName) -> {
+            kEXCLUDED_PATHS.contains(operationName) && actionName == "mutation" -> {
                 val noAuthHandler = NoAuthHandler(request = request, chain = chain)
                 noAuthHandler()
             }
 
-            kFIREBASE_SUPPORT_AUTH_PATHS.contains(operationName) -> {
+            kFIREBASE_SUPPORT_AUTH_PATHS.contains(operationName) && actionName == "mutation" -> {
                 val firebaseAuthHandler = FirebaseAuthHandler(request = request, chain = chain)
                 firebaseAuthHandler()
             }
