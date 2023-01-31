@@ -1,7 +1,7 @@
 package com.thintwice.archive.mbompay.controller
 
 import com.thintwice.archive.mbompay.domain.input.CustomerInput
-import com.thintwice.archive.mbompay.domain.model.Customer
+import com.thintwice.archive.mbompay.domain.model.JCustomer
 import com.thintwice.archive.mbompay.domain.model.JwtToken
 import com.thintwice.archive.mbompay.repository.CustomerRepository
 import org.springframework.graphql.data.method.annotation.*
@@ -15,19 +15,19 @@ import java.util.*
 class CustomerController(private val service: CustomerRepository) {
     @PreAuthorize("hasAnyRole('FIREBASE')")
     @MutationMapping(name = "customer")
-    suspend fun customer(@Argument input: CustomerInput): Optional<Customer> {
+    suspend fun customer(@Argument input: CustomerInput): Optional<JCustomer> {
         return service.customer(input = input)
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER')")
     @MutationMapping(name = "customerInfo")
-    suspend fun customerInfo(@Argument input: CustomerInput): Optional<Customer> {
+    suspend fun customerInfo(@Argument input: CustomerInput): Optional<JCustomer> {
         return service.customer(input = input)
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER')")
     @QueryMapping(name = "customer")
-    suspend fun customer(authentication: Authentication?): Optional<Customer> {
+    suspend fun customer(authentication: Authentication?): Optional<JCustomer> {
         if (authentication?.name == null) {
             throw RuntimeException("invalid token")
         }
@@ -37,7 +37,7 @@ class CustomerController(private val service: CustomerRepository) {
 
     @PreAuthorize("hasAnyRole('CUSTOMER')")
     @QueryMapping(name = "customerInfo")
-    suspend fun customerInfo(@Argument id: UUID): Optional<Customer> {
+    suspend fun customerInfo(@Argument id: UUID): Optional<JCustomer> {
         return service.customer(id = id)
     }
 
@@ -46,13 +46,13 @@ class CustomerController(private val service: CustomerRepository) {
     suspend fun customers(
         @Argument first: Int,
         @Argument after: UUID? = null,
-    ): Iterable<Customer> {
+    ): Iterable<JCustomer> {
         return service.customers(first = first, after = after)
     }
 
     @PreAuthorize("hasAnyRole('FIREBASE')")
     @BatchMapping(field = "jwtToken")
-    suspend fun jwtToken(customers: List<Customer>): Map<Customer, JwtToken> {
+    suspend fun jwtToken(customers: List<JCustomer>): Map<JCustomer, JwtToken> {
         return service.jwtToken(customers = customers)
     }
 

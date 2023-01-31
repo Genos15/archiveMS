@@ -1,6 +1,6 @@
 package com.thintwice.archive.mbompay.domain.dto
 
-import com.thintwice.archive.mbompay.domain.model.Customer
+import com.thintwice.archive.mbompay.domain.model.JCustomer
 import java.util.*
 
 data class CustomerDto(
@@ -16,8 +16,8 @@ data class CustomerDto(
     val isPhoneVerified: Boolean? = null,
     val stripeCustomerId: String,
 ) {
-    val customer: Customer
-        get() = Customer(
+    val customer: JCustomer
+        get() = JCustomer(
             id = id,
 //            name = name,
 //            postalCode = postalCode,

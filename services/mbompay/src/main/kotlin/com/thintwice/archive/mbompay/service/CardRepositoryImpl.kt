@@ -1,95 +1,36 @@
 package com.thintwice.archive.mbompay.service
 
-import com.thintwice.archive.mbompay.configuration.bundle.RB
-import com.thintwice.archive.mbompay.configuration.database.DbClient
-import com.thintwice.archive.mbompay.domain.common.jsonOf
-import com.thintwice.archive.mbompay.domain.input.BankCardInput
-import com.thintwice.archive.mbompay.domain.mapper.CardMapper
-import com.thintwice.archive.mbompay.domain.mapper.ProviderMapper
+import com.thintwice.archive.mbompay.domain.input.CardInput
 import com.thintwice.archive.mbompay.domain.model.Card
-import com.thintwice.archive.mbompay.domain.model.Provider
 import com.thintwice.archive.mbompay.repository.CardRepository
-import kotlinx.coroutines.reactive.awaitFirstOrElse
-import mu.KLogger
-import mu.KotlinLogging
-import org.springframework.r2dbc.core.Parameter
+import com.thintwice.archive.mbompay.repository.StripeCardRepository
+import com.thintwice.archive.mbompay.repository.StripeCustomerRepository
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
-import reactor.core.scheduler.Schedulers
 import java.util.*
 
 @Service
 class CardRepositoryImpl(
-    private val qr: RB,
-    private val dbClient: DbClient,
-    private val mapper: CardMapper,
-    private val providerMapper: ProviderMapper,
-    private val logger: KLogger = KotlinLogging.logger {},
+    private val customerFactory: StripeCustomerRepository,
+    private val cardFactory: StripeCardRepository,
 ) : CardRepository {
-    override suspend fun card(input: BankCardInput, token: UUID): Optional<Card> {
-        return dbClient.exec("SELECT cards_on_create_edit(input := :input, token := :token)")
-            .bind("input", jsonOf(input))
-            .bind("token", token)
-            .map(mapper::factory)
-            .first()
-            .doOnError { logger.error { it.message } }
-            .log()
-            .awaitFirstOrElse { Optional.empty() }
+
+    override suspend fun card(input: CardInput, token: String): Optional<Card> {
+        val customer = customerFactory.activeCustomer(accessToken = token)
+        val stripCard = cardFactory.create(customer = customer, card = input)
+        return Optional.ofNullable(stripCard?.let { Card(stripeCard = it) })
     }
 
-    override suspend fun card(id: UUID, token: UUID): Optional<Card> {
-        return dbClient.exec("SELECT cards_on_find(id := :id, token := :token)")
-            .bind("id", id)
-            .bind("token", token)
-            .map(mapper::factory)
-            .first()
-            .doOnError { logger.error { it.message } }
-            .log()
-            .awaitFirstOrElse { Optional.empty() }
+    override suspend fun card(token: String): Optional<Card> {
+        TODO("Not yet implemented")
     }
 
-    override suspend fun deleteCard(id: UUID, token: UUID): Boolean {
-        return dbClient.exec("SELECT cards_on_delete(id := :id, token := :token)")
-            .bind("id", id)
-            .bind("token", token)
-            .fetch()
-            .first()
-            .map { it.values.firstOrNull() as Boolean? ?: false }
-            .doOnError { logger.error { it.message } }
-            .log()
-            .awaitFirstOrElse { false }
+    override suspend fun deleteCard(token: String): Boolean {
+        TODO("Not yet implemented")
     }
 
-    override suspend fun cards(first: Int, after: UUID?, token: UUID): Iterable<Card> {
-        return dbClient.exec("SELECT cards_on_retrieve(first := :first, after := :after, token := :token)")
-            .bind("first", first)
-            .bind("after", Parameter.fromOrEmpty(after, UUID::class.java))
-            .bind("token", token)
-            .map(mapper::list)
-            .first()
-            .doOnError { logger.error { it.message } }
-            .log()
-            .awaitFirstOrElse { emptyList() }
-    }
-
-    override suspend fun providers(cards: List<Card>, token: UUID?): Map<Card, Provider> {
-        return Flux.fromIterable(cards)
-            .parallel()
-            .flatMap { card ->
-                dbClient.exec("SELECT cards_on_retrieve_provider(id := :id, token := :token)")
-                    .bind("id", Parameter.from(card.id))
-                    .bind("token", Parameter.fromOrEmpty(token, UUID::class.java))
-                    .map(providerMapper::factory)
-                    .first()
-                    .map { AbstractMap.SimpleEntry(card, it.orElseGet { null }) }
-                    .filter { it.value != null }
-            }
-            .runOn(Schedulers.parallel())
-            .sequential()
-            .collectList()
-            .map { entries -> entries.associateBy({ it.key }, { it.value }) }
-            .doOnError { logger.error { it.message } }
-            .log()
-            .awaitFirstOrElse { emptyMap() }
+    override suspend fun cards(first: Long, token: String): Iterable<Card> {
+        val customer = customerFactory.activeCustomer(accessToken = token)
+        val stripCards = cardFactory.retrieve(customer = customer, first = first)
+        return stripCards.map { Card(stripeCard = it) }
     }
 }
