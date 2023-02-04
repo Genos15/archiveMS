@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.thintwice.archive.mbompay.domain.common.MapperState
 import com.thintwice.archive.mbompay.domain.dto.CustomerDto
-import com.thintwice.archive.mbompay.domain.model.Customer
+import com.thintwice.archive.mbompay.domain.model.JCustomer
 import mu.KLogger
 import mu.KotlinLogging
 import java.util.*
@@ -15,9 +15,9 @@ import java.util.*
 class CustomerMapper(
     private val logger: KLogger = KotlinLogging.logger {},
     private val mapper: ObjectMapper,
-) : MapperState<Row, Any, Customer> {
+) : MapperState<Row, Any, JCustomer> {
 
-    override fun list(row: Row, o: Any): List<Customer> = try {
+    override fun list(row: Row, o: Any): List<JCustomer> = try {
         val payload = row.get(0, String::class.java) ?: error("something went wrong with mapping values")
         mapper.readValue(payload)
     } catch (e: Exception) {
@@ -25,12 +25,12 @@ class CustomerMapper(
         emptyList()
     }
 
-    override fun factory(row: Row, o: Any): Optional<Customer> = try {
+    override fun factory(row: Row, o: Any): Optional<JCustomer> = try {
         val payload = row.get(0, String::class.java) ?: error("something went wrong with mapping value")
-        Optional.ofNullable(mapper.readValue<List<Customer>?>(payload)?.firstOrNull())
+        Optional.ofNullable(mapper.readValue<List<JCustomer>?>(payload)?.firstOrNull())
     } catch (e: Exception) {
         logger.warn { e.message }
-        Optional.empty<Customer>()
+        Optional.empty<JCustomer>()
     }
 
     fun factoryDto(row: Row, o: Any): CustomerDto? = try {

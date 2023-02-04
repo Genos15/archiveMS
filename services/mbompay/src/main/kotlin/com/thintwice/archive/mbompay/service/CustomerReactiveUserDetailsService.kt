@@ -38,6 +38,8 @@ class CustomerReactiveUserDetailsService(
                 } else {
                     return@handle sink.error(UsernameNotFoundException("invalid credentials"))
                 }
+            }.doOnError {
+                println("-- error findByUsername = $it")
             }.map {
                 val decodeAccessToken = jwtService.decodeAccessToken(it.accessToken)
                 val expiredAt: Instant = decodeAccessToken.expiresAt.toInstant()

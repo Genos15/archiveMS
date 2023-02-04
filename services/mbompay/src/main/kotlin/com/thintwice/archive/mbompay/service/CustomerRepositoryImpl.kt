@@ -8,7 +8,7 @@ import com.thintwice.archive.mbompay.domain.common.parameterOrNull
 import com.thintwice.archive.mbompay.domain.input.CustomerInput
 import com.thintwice.archive.mbompay.domain.mapper.CustomerMapper
 import com.thintwice.archive.mbompay.domain.mapper.JwtTokenMapper
-import com.thintwice.archive.mbompay.domain.model.Customer
+import com.thintwice.archive.mbompay.domain.model.JCustomer
 import com.thintwice.archive.mbompay.domain.model.JwtToken
 import com.thintwice.archive.mbompay.repository.CustomerRepository
 import kotlinx.coroutines.reactive.awaitFirstOrElse
@@ -30,7 +30,7 @@ class CustomerRepositoryImpl(
     private val jwtService: JWTService,
 ) : CustomerRepository {
 
-    override suspend fun customer(input: CustomerInput): Optional<Customer> {
+    override suspend fun customer(input: CustomerInput): Optional<JCustomer> {
         val query = qr.l("mutation.create.edit.customer")
         return dbClient.exec(query = query)
             .bind("input", jsonOf(input))
@@ -41,7 +41,7 @@ class CustomerRepositoryImpl(
             .awaitFirstOrElse { Optional.empty() }
     }
 
-    override suspend fun customer(id: UUID): Optional<Customer> {
+    override suspend fun customer(id: UUID): Optional<JCustomer> {
         val query = qr.l("query.find.customer")
         val token: String? = null
         return dbClient.exec(query = query)
@@ -54,7 +54,7 @@ class CustomerRepositoryImpl(
             .awaitFirstOrElse { Optional.empty() }
     }
 
-    override suspend fun customer(accessToken: String): Optional<Customer> {
+    override suspend fun customer(accessToken: String): Optional<JCustomer> {
         val query = qr.l("query.find.customer")
         val id: UUID? = null
         return dbClient.exec(query = query)
@@ -67,7 +67,7 @@ class CustomerRepositoryImpl(
             .awaitFirstOrElse { Optional.empty() }
     }
 
-    override suspend fun customers(first: Int, after: UUID?): Iterable<Customer> {
+    override suspend fun customers(first: Int, after: UUID?): Iterable<JCustomer> {
         val query = qr.l("query.retrieve.customer")
         return dbClient.exec(query = query)
             .bind("first", first)
@@ -79,7 +79,7 @@ class CustomerRepositoryImpl(
             .awaitFirstOrElse { emptyList() }
     }
 
-    override suspend fun jwtToken(customers: List<Customer>): Map<Customer, JwtToken> {
+    override suspend fun jwtToken(customers: List<JCustomer>): Map<JCustomer, JwtToken> {
         val query = qr.l("mutation.jwt.token.create")
         return Flux.fromIterable(customers)
             .filter { it.email != null && it.emailVerified == true }

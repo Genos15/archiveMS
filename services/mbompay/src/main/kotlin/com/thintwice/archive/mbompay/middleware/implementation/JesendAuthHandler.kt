@@ -42,7 +42,7 @@ class JesendAuthHandler(
                         ReactiveSecurityContextHolder.withAuthentication(authentication)
                     )
                 }.onErrorResume { error ->
-                    error.printStackTrace()
+                    println("-- JesendAuthHandler ${error.message}")
                     onError(chain = chain, request = request)
                 }
         } else {
