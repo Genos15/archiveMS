@@ -42,6 +42,7 @@ class StripeChargeRepositoryImpl(
             .setCurrency("eur")
             .setCustomer(customer.id)
 //            .setApplicationFeeAmount(2_000)
+//            .setApplicationFeeAmount(2_000)
             .setSource(defaultCard.id)
             .build()
         println("-- has created charge")
