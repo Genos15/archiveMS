@@ -17,6 +17,7 @@ class StripeApiController(private val sr: RB) {
         @RequestBody payload: String?,
         @RequestHeader("Stripe-Signature") sigHeader: String?,
     ): ResponseEntity<String?>? {
+        println("-- new stripe event $payload, $sigHeader")
         val secretWebhookKey = sr.l("stripe.secret.webhook.key")
         val event: Event? = try {
             Webhook.constructEvent(payload, sigHeader, secretWebhookKey)

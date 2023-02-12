@@ -30,9 +30,12 @@ class FirebaseAuthHandler(
                 AuthorityUtils.createAuthorityList(kFIREBASE_DEFAULT_USER_ROLE),
             )
 
+            println("-- Authentication = $authentication")
+
             chain.next(request).contextWrite(
                 ReactiveSecurityContextHolder.withAuthentication(authentication)
             ).onErrorResume { error ->
+                println("-- FirebaseAuthHandler error")
                 error.printStackTrace()
                 onError(request = request, chain = chain)
             }

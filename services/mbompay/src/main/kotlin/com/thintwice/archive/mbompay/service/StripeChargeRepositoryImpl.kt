@@ -3,10 +3,10 @@ package com.thintwice.archive.mbompay.service
 import com.stripe.Stripe
 import com.stripe.model.Card
 import com.stripe.model.Charge
-import com.stripe.model.Token
+import com.stripe.model.PaymentIntent
 import com.stripe.param.ChargeCreateParams
+import com.stripe.param.PaymentIntentCreateParams
 import com.stripe.param.PaymentSourceCollectionListParams
-import com.stripe.param.TokenCreateParams
 import com.thintwice.archive.mbompay.configuration.bundle.RB
 import com.thintwice.archive.mbompay.repository.StripeChargeRepository
 import com.thintwice.archive.mbompay.repository.StripeCustomerRepository
@@ -47,6 +47,34 @@ class StripeChargeRepositoryImpl(
             .build()
         println("-- has created charge")
         return Charge.create(chargeSource)
+    }
+
+    override suspend fun sendPayment(amount: Long, token: String): String? {
+        Stripe.apiKey = secretApiKey
+        val customer = customerFactory.activeCustomer(accessToken = token)
+        println("-- has gotten customer")
+        val sourceParams = PaymentSourceCollectionListParams
+            .builder()
+            .setLimit(1)
+            .build()
+
+        val customerCards = customer.sources.list(sourceParams)
+        val defaultCard = customerCards.data.filterIsInstance<Card>().firstOrNull()
+        println("-- getting card")
+
+        if (customerCards == null || defaultCard == null) {
+            throw RuntimeException("no payment method registered")
+        }
+        println("-- has gotten card")
+        val params = PaymentIntentCreateParams.builder()
+            .setAmount(amount)
+            .setCurrency("eur")
+            .setCustomer(customer.id)
+            .build()
+
+        val paymentIntent = PaymentIntent.create(params)
+        println("-- intent = $paymentIntent")
+        return paymentIntent.clientSecret
     }
 
     override suspend fun refund(): Charge? {

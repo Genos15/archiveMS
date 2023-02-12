@@ -51,8 +51,9 @@ class CustomerController(private val service: CustomerRepository) {
     }
 
     @PreAuthorize("hasAnyRole('FIREBASE')")
-    @BatchMapping(field = "jwtToken")
+    @BatchMapping(field = "jwtToken", typeName = "Customer")
     suspend fun jwtToken(customers: List<JCustomer>): Map<JCustomer, JwtToken> {
+        println("getting customer JWT")
         return service.jwtToken(customers = customers)
     }
 

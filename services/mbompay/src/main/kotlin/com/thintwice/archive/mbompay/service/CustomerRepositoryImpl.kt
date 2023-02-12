@@ -11,6 +11,7 @@ import com.thintwice.archive.mbompay.domain.mapper.JwtTokenMapper
 import com.thintwice.archive.mbompay.domain.model.JCustomer
 import com.thintwice.archive.mbompay.domain.model.JwtToken
 import com.thintwice.archive.mbompay.repository.CustomerRepository
+import kotlinx.coroutines.reactive.awaitFirstOrDefault
 import kotlinx.coroutines.reactive.awaitFirstOrElse
 import mu.KLogger
 import mu.KotlinLogging
@@ -36,9 +37,7 @@ class CustomerRepositoryImpl(
             .bind("input", jsonOf(input))
             .map(mapper::factory)
             .first()
-            .doOnError { println("error = ${it.message}") }
-            .log()
-            .awaitFirstOrElse { Optional.empty() }
+            .awaitFirstOrDefault(Optional.empty())
     }
 
     override suspend fun customer(id: UUID): Optional<JCustomer> {
@@ -49,9 +48,7 @@ class CustomerRepositoryImpl(
             .bind("token", parameterOrNull(token))
             .map(mapper::factory)
             .first()
-            .doOnError { logger.error { it.message } }
-            .log()
-            .awaitFirstOrElse { Optional.empty() }
+            .awaitFirstOrDefault(Optional.empty())
     }
 
     override suspend fun customer(accessToken: String): Optional<JCustomer> {
@@ -81,13 +78,14 @@ class CustomerRepositoryImpl(
 
     override suspend fun jwtToken(customers: List<JCustomer>): Map<JCustomer, JwtToken> {
         val query = qr.l("mutation.jwt.token.create")
+        println("-- build jwt")
         return Flux.fromIterable(customers)
             .filter { it.email != null && it.emailVerified == true }
             .parallel()
             .flatMap { customer ->
                 val jwtToken = jwtService.generateJwtToken(
                     username = customer.email!!,
-                    roles = arrayOf("ROLE_FIREBASE")
+                    roles = arrayOf(kFIREBASE_DEFAULT_USER_ROLE)
                 )
                 dbClient.exec(query = query)
                     .bind("input", jsonOf(jwtToken))
@@ -104,5 +102,9 @@ class CustomerRepositoryImpl(
             .doOnError { println { it.message } }
             .log()
             .awaitFirstOrElse { emptyMap() }
+    }
+
+    companion object {
+        const val kFIREBASE_DEFAULT_USER_ROLE = "ROLE_FIREBASE"
     }
 }
