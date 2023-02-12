@@ -19,4 +19,13 @@ class ChargeController(private val service: StripeChargeRepository) {
         }
         return service.send(amount = amount, token = authentication.name)
     }
+
+    @PreAuthorize("hasAnyRole('CUSTOMER')")
+    @MutationMapping(name = "sendPayment")
+    suspend fun sendPayment(@Argument amount: Long, authentication: Authentication?): String? {
+        if (authentication?.name == null) {
+            throw RuntimeException("invalid token")
+        }
+        return service.sendPayment(amount = amount, token = authentication.name)
+    }
 }
