@@ -48,9 +48,7 @@ class CustomerRepositoryImpl(
             .bind("token", parameterOrNull(token))
             .map(mapper::factory)
             .first()
-            .doOnError { logger.error { it.message } }
-            .log()
-            .awaitFirstOrElse { Optional.empty() }
+            .awaitFirstOrDefault(Optional.empty())
     }
 
     override suspend fun customer(accessToken: String): Optional<JCustomer> {
