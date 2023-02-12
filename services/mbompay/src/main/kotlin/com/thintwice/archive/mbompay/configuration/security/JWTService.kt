@@ -19,6 +19,10 @@ class JWTService(qr: RB, private val clock: Clock) {
 
     val refresh = qr.l("jesend.jwt.refresh")
 
+    val timeValidity = qr.l("jesend.jwt.time.validity")
+
+    val refreshDayValidity = qr.l("jesend.jwt.refresh.day.validity")
+
     fun accessToken(username: String, expirationInMillis: Long, roles: Array<String>): String {
         return generate(username, expirationInMillis, roles, secret)
     }
@@ -56,15 +60,17 @@ class JWTService(qr: RB, private val clock: Clock) {
 
 
     fun generateJwtToken(username: String, roles: Array<String>): JwtToken {
+        val validTime = timeValidity.toLongOrNull() ?: throw NumberFormatException()
+        val dayTime = refreshDayValidity.toLongOrNull() ?: throw NumberFormatException()
         val expiredAccessToken = ZonedDateTime
             .now(clock)
-            .plusMinutes(15)
+            .plusMinutes(validTime)
             .toInstant()
             .toEpochMilli()
 
         val expiredRefreshToken = ZonedDateTime
             .now(clock)
-            .plusDays(10)
+            .plusDays(dayTime)
             .toInstant()
             .toEpochMilli()
 

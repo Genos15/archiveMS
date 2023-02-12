@@ -27,7 +27,6 @@ class CustomerRepositoryImpl(
     private val dbClient: DbClient,
     private val mapper: CustomerMapper,
     private val jwtMapper: JwtTokenMapper,
-    private val logger: KLogger = KotlinLogging.logger {},
     private val jwtService: JWTService,
 ) : CustomerRepository {
 
@@ -59,9 +58,7 @@ class CustomerRepositoryImpl(
             .bind("token", accessToken)
             .map(mapper::factory)
             .first()
-            .doOnError { logger.error { it.message } }
-            .log()
-            .awaitFirstOrElse { Optional.empty() }
+            .awaitFirstOrDefault(Optional.empty())
     }
 
     override suspend fun customers(first: Int, after: UUID?): Iterable<JCustomer> {
@@ -71,14 +68,11 @@ class CustomerRepositoryImpl(
             .bind("after", Parameter.fromOrEmpty(after, UUID::class.java))
             .map(mapper::list)
             .first()
-            .doOnError { logger.error { it.message } }
-            .log()
-            .awaitFirstOrElse { emptyList() }
+            .awaitFirstOrDefault(emptyList())
     }
 
     override suspend fun jwtToken(customers: List<JCustomer>): Map<JCustomer, JwtToken> {
         val query = qr.l("mutation.jwt.token.create")
-        println("-- build jwt")
         return Flux.fromIterable(customers)
             .filter { it.email != null && it.emailVerified == true }
             .parallel()
@@ -99,8 +93,6 @@ class CustomerRepositoryImpl(
             .sequential()
             .collectList()
             .map { entries -> entries.associateBy({ it.key }, { it.value }) }
-            .doOnError { println { it.message } }
-            .log()
             .awaitFirstOrElse { emptyMap() }
     }
 

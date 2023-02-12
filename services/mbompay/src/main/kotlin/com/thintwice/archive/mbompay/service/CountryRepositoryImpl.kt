@@ -86,7 +86,6 @@ class CountryRepositoryImpl(
             .map(mapper::factory)
             .first()
             .doOnError { logger.error { it.message } }
-            .log()
             .awaitFirstOrElse { Optional.empty() }
     }
 

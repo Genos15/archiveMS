@@ -13,6 +13,7 @@ import com.thintwice.archive.mbompay.domain.model.JwtToken
 import com.thintwice.archive.mbompay.domain.model.OneTimePassword
 import com.thintwice.archive.mbompay.notification.EmailService
 import com.thintwice.archive.mbompay.repository.OneTimePasswordRepository
+import kotlinx.coroutines.reactive.awaitFirstOrDefault
 import kotlinx.coroutines.reactive.awaitFirstOrElse
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -87,11 +88,13 @@ class OneTimePasswordImpl(
 
     override suspend fun refresh(refreshToken: String): JwtToken {
         val query = qr.l("mutation.jwt.token.refresh")
+        val timeValidity = qr.l("jesend.otp.time.validity")
+        val validTime = timeValidity.toLongOrNull() ?: throw NumberFormatException()
 
         val decodedToken = jwtService.decodeRefreshToken(refreshToken)
         val expiredAt = ZonedDateTime
             .now()
-            .plusMinutes(15)
+            .plusMinutes(validTime)
             .toInstant()
             .toEpochMilli()
 
@@ -107,11 +110,8 @@ class OneTimePasswordImpl(
         return dbClient.exec(query = query)
             .bind("input", jsonOf(token))
             .map(jwtMapper::factory)
-            .first().log()
-            .doOnError { println { it.message } }
-            .onErrorResume {
-                Mono.error(InternalException(source = it.message))
-            }.awaitFirstOrElse { Optional.empty() }
+            .first()
+            .awaitFirstOrDefault(Optional.empty())
             .orElseThrow { InternalException("impossible to build token") }
     }
 

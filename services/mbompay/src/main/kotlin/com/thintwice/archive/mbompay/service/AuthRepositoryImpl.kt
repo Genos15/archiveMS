@@ -31,7 +31,6 @@ class AuthRepositoryImpl(
             .map(mapper::factory)
             .first()
             .doOnError { logger.error { it.message } }
-            .log()
             .awaitFirstOrElse { Optional.empty() }
     }
 
@@ -42,7 +41,6 @@ class AuthRepositoryImpl(
             .map(mapper::factory)
             .first()
             .doOnError { logger.error { it.message } }
-            .log()
             .awaitFirstOrElse { Optional.empty() }
     }
 
@@ -55,7 +53,6 @@ class AuthRepositoryImpl(
             .first()
             .map { Optional.ofNullable(it.values.firstOrNull() as String?)  }
             .doOnError { logger.error { it.message } }
-            .log()
             .awaitFirstOrElse { Optional.empty() }
     }
 
@@ -68,7 +65,6 @@ class AuthRepositoryImpl(
             .first()
             .map { it.values.firstOrNull() as Boolean? ?: false }
             .doOnError { logger.error { it.message } }
-            .log()
             .awaitFirstOrElse { false }
     }
 
