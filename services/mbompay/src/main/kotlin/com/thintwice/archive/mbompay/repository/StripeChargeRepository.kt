@@ -8,4 +8,6 @@ interface StripeChargeRepository {
     suspend fun sendPayment(amount: Long, token: String): String?
     suspend fun refund(): Charge?
     suspend fun retrieve(first: Long): Iterable<Charge>
+
+    suspend fun createPaymentIntentEventHandler(intent: PaymentIntent)
 }

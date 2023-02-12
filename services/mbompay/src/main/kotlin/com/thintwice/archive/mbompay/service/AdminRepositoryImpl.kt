@@ -30,7 +30,6 @@ class AdminRepositoryImpl(
             .map(mapper::factory)
             .first()
             .doOnError { logger.error { it.message } }
-            .log()
             .awaitFirstOrElse { Optional.empty() }
     }
 
@@ -42,7 +41,6 @@ class AdminRepositoryImpl(
             .map(mapper::factory)
             .first()
             .doOnError { logger.error { it.message } }
-            .log()
             .awaitFirstOrElse { Optional.empty() }
     }
 
@@ -55,7 +53,6 @@ class AdminRepositoryImpl(
             .map(mapper::list)
             .first()
             .doOnError { logger.error { it.message } }
-            .log()
             .awaitFirstOrElse { emptyList() }
     }
 

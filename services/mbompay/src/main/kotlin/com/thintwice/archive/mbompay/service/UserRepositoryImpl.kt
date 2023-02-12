@@ -7,9 +7,7 @@ import com.thintwice.archive.mbompay.domain.input.UserDetailInput
 import com.thintwice.archive.mbompay.domain.mapper.UserDetailMapper
 import com.thintwice.archive.mbompay.domain.model.UserDetail
 import com.thintwice.archive.mbompay.repository.UserRepository
-import kotlinx.coroutines.reactive.awaitFirstOrElse
-import mu.KLogger
-import mu.KotlinLogging
+import kotlinx.coroutines.reactive.awaitFirstOrDefault
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -17,8 +15,7 @@ import java.util.*
 class UserRepositoryImpl(
     private val qr: RB,
     private val dbClient: DbClient,
-    private val mapper: UserDetailMapper,
-    private val logger: KLogger = KotlinLogging.logger {},
+    private val mapper: UserDetailMapper
 ) : UserRepository {
     override suspend fun userDetail(input: UserDetailInput): Optional<UserDetail> {
         val query = qr.l("mutation.create.edit.user.detail")
@@ -26,9 +23,7 @@ class UserRepositoryImpl(
             .bind("input", jsonOf(input))
             .map(mapper::factory)
             .first()
-            .doOnError { logger.error { it.message } }
-            .log()
-            .awaitFirstOrElse { Optional.empty() }
+            .awaitFirstOrDefault(Optional.empty())
     }
 
 }

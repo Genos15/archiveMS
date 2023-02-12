@@ -24,7 +24,8 @@ class JesendAuthHandler(
     operator fun invoke(): Mono<WebGraphQlResponse> {
         val authHeader = request.headers.getFirst(HttpHeaders.AUTHORIZATION)
         return if (hasAuthHeader(authHeader)) {
-            Mono.just(authHeader!!.substring(AUTH_HEADER_VALUE_PREFIX.length)).flatMap(service::findByUsername)
+            Mono.just(authHeader!!.substring(AUTH_HEADER_VALUE_PREFIX.length))
+                .flatMap(service::findByUsername)
                 .flatMap {
                     val contextMap = mutableMapOf<String, Any>()
                     contextMap["token"] = it.username

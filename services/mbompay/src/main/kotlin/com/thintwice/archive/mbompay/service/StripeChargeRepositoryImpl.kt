@@ -52,7 +52,6 @@ class StripeChargeRepositoryImpl(
     override suspend fun sendPayment(amount: Long, token: String): String? {
         Stripe.apiKey = secretApiKey
         val customer = customerFactory.activeCustomer(accessToken = token)
-        println("-- has gotten customer")
         val sourceParams = PaymentSourceCollectionListParams
             .builder()
             .setLimit(1)
@@ -60,12 +59,10 @@ class StripeChargeRepositoryImpl(
 
         val customerCards = customer.sources.list(sourceParams)
         val defaultCard = customerCards.data.filterIsInstance<Card>().firstOrNull()
-        println("-- getting card")
 
         if (customerCards == null || defaultCard == null) {
             throw RuntimeException("no payment method registered")
         }
-        println("-- has gotten card")
         val params = PaymentIntentCreateParams.builder()
             .setAmount(amount)
             .setCurrency("eur")
@@ -73,7 +70,6 @@ class StripeChargeRepositoryImpl(
             .build()
 
         val paymentIntent = PaymentIntent.create(params)
-        println("-- intent = $paymentIntent")
         return paymentIntent.clientSecret
     }
 
@@ -85,6 +81,15 @@ class StripeChargeRepositoryImpl(
     override suspend fun retrieve(first: Long): Iterable<Charge> {
         Stripe.apiKey = secretApiKey
         TODO("Not yet implemented")
+    }
+
+    override suspend fun createPaymentIntentEventHandler(intent: PaymentIntent) {
+        println("""
+            -- created payment intent
+            ${intent.id}
+            ${intent.amount}
+            ${intent.receiptEmail}
+        """.trimIndent())
     }
 
 //    override suspend fun create(customer: Customer, card: CardInput): Card? {
