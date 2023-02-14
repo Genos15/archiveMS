@@ -1,11 +1,13 @@
 package com.thintwice.archive.mbompay.service
 
+import com.stripe.model.Customer
 import com.thintwice.archive.mbompay.configuration.bundle.RB
 import com.thintwice.archive.mbompay.configuration.database.DbClient
 import com.thintwice.archive.mbompay.configuration.security.JWTService
 import com.thintwice.archive.mbompay.domain.common.jsonOf
 import com.thintwice.archive.mbompay.domain.common.parameterOrNull
 import com.thintwice.archive.mbompay.domain.input.CustomerInput
+import com.thintwice.archive.mbompay.domain.input.JCustomerInput
 import com.thintwice.archive.mbompay.domain.mapper.CustomerMapper
 import com.thintwice.archive.mbompay.domain.mapper.JwtTokenMapper
 import com.thintwice.archive.mbompay.domain.model.JCustomer
@@ -13,8 +15,6 @@ import com.thintwice.archive.mbompay.domain.model.JwtToken
 import com.thintwice.archive.mbompay.repository.CustomerRepository
 import kotlinx.coroutines.reactive.awaitFirstOrDefault
 import kotlinx.coroutines.reactive.awaitFirstOrElse
-import mu.KLogger
-import mu.KotlinLogging
 import org.springframework.r2dbc.core.Parameter
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -94,6 +94,35 @@ class CustomerRepositoryImpl(
             .collectList()
             .map { entries -> entries.associateBy({ it.key }, { it.value }) }
             .awaitFirstOrElse { emptyMap() }
+    }
+
+    override suspend fun updateStripeId(uid: String, accessToken: String) {
+        dbClient.exec(
+            query = """
+            UPDATE customers SET customers.uid = :uid 
+            WHERE customers.id = user_id_by_access_token (
+                   access_token := :token,
+                   is_required := false
+            )
+        """.trimIndent()
+        )
+            .bind("uid", uid)
+            .bind("token", accessToken)
+            .map(mapper::list)
+            .first()
+            .awaitFirstOrDefault(emptyList())
+    }
+
+    override suspend fun stripeEventUpdate(customer: Customer) {
+        val input = JCustomerInput(customer = customer)
+        println(input)
+        val query = qr.l("mutation.stripe.update.customer")
+        dbClient.exec(query = query)
+            .bind("input", jsonOf(input))
+            .fetch()
+            .first()
+            .map { it.values.firstOrNull() as Boolean? ?: false }
+            .awaitFirstOrDefault(false)
     }
 
     companion object {

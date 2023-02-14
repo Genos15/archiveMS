@@ -4,6 +4,7 @@ import com.stripe.Stripe
 import com.stripe.model.Card
 import com.stripe.model.Customer
 import com.stripe.model.Token
+import com.stripe.param.CardUpdateOnCustomerParams
 import com.stripe.param.PaymentSourceCollectionListParams
 import com.thintwice.archive.mbompay.configuration.bundle.RB
 import com.thintwice.archive.mbompay.domain.input.CardInput
@@ -25,12 +26,16 @@ class StripeCardRepositoryImpl(sr: RB) : StripeCardRepository {
     }
 
     override suspend fun update(customer: Customer, cardId: String, card: CardInput): Card {
+        CardUpdateOnCustomerParams.builder()
+
+            .build()
         TODO("Not yet implemented")
     }
 
     override suspend fun delete(customer: Customer, cardId: String): Boolean {
         Stripe.apiKey = secretApiKey
         val card = customer.sources.retrieve(cardId) as? Card?
+        card?.update(CardUpdateOnCustomerParams.builder().build())
         val deletedCard = card?.delete()
         return deletedCard?.deleted == true
     }
@@ -52,4 +57,10 @@ class StripeCardRepositoryImpl(sr: RB) : StripeCardRepository {
         return cards.data.filterIsInstance<Card>()
     }
 
+
+//    suspend fun cards(first: Long, after: UUID?, token: String): Iterable<JCard> {
+//        val customer = customerFactory.activeCustomer(accessToken = token)
+//        val stripCards = cardFactory.retrieve(customer = customer, first = first)
+//        return stripCards.map { JCard(stripeCard = it) }
+//    }
 }

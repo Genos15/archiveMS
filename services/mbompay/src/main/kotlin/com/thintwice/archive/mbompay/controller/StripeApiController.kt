@@ -4,14 +4,21 @@ import com.stripe.exception.SignatureVerificationException
 import com.stripe.model.*
 import com.stripe.net.Webhook
 import com.thintwice.archive.mbompay.configuration.bundle.RB
-import com.thintwice.archive.mbompay.repository.StripeChargeRepository
+import com.thintwice.archive.mbompay.repository.CardRepository
+import com.thintwice.archive.mbompay.repository.CustomerRepository
+import com.thintwice.archive.mbompay.repository.StripePaymentRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("api/v0.1")
-class StripeApiController(private val sr: RB, private val service: StripeChargeRepository) {
+class StripeApiController(
+    private val sr: RB,
+    private val cardService: CardRepository,
+    private val customerService: CustomerRepository,
+    private val paymentService: StripePaymentRepository,
+) {
 
     @RequestMapping(value = ["/stripe/webhook"], method = [RequestMethod.POST])
     suspend fun webhook(
@@ -20,24 +27,58 @@ class StripeApiController(private val sr: RB, private val service: StripeChargeR
     ): ResponseEntity<String>? {
         val eventResult = runCatching {
             val secretWebhookKey = sr.l("stripe.secret.webhook.key")
+
             val event = Webhook.constructEvent(payload, sigHeader, secretWebhookKey)
             val dataObjectDeserializer = event.dataObjectDeserializer
-            val stripeObject = dataObjectDeserializer.`object`.get()
+//            val stripeObject = dataObjectDeserializer.`object`.get()
+            val stripeObject = dataObjectDeserializer.deserializeUnsafe()
 
             when (event.type) {
                 sr.l("stripe.event.payment_intent.created") -> {
-                    service.createPaymentIntentEventHandler(stripeObject as PaymentIntent)
+                    paymentService.onCreate(stripeObject as PaymentIntent)
                 }
 
                 sr.l("stripe.event.payment_intent.succeeded") -> {
-                    println("payment succeed…")
+                    paymentService.onSucceed(stripeObject as PaymentIntent)
+                }
+
+                sr.l("stripe.event.payment_intent.requires_action") -> {
+                    paymentService.onRequiredAction(stripeObject as PaymentIntent)
                 }
 
                 sr.l("stripe.event.payment_intent.processing") -> {
-                    println("payment succeed…")
+                    paymentService.onProcessing(stripeObject as PaymentIntent)
                 }
 
-                else -> throw RuntimeException("Unknown")
+                sr.l("stripe.event.payment_intent.payment_failed") -> {
+                    paymentService.onFailed(stripeObject as PaymentIntent)
+                }
+
+                sr.l("stripe.event.payment_intent.canceled") -> {
+                    paymentService.onCancelled(stripeObject as PaymentIntent)
+                }
+
+                sr.l("stripe.event.charge.succeeded") -> {
+                    println("stripe payment + customer charge succeeded")
+                }
+
+                sr.l("stripe.event.customer.source.deleted") -> {
+                    println("stripe delete customer card")
+                    cardService.stripeEventDelete(stripeObject as Card)
+                }
+
+                sr.l("stripe.event.customer.source.created") -> {
+                    println("stripe create customer card")
+                    cardService.stripeEventCreate(stripeObject as Card)
+                }
+
+                sr.l("stripe.event.customer.updated") -> {
+                    println("stripe customer update")
+                    val customer = stripeObject as Customer
+                    customerService.stripeEventUpdate(customer = customer)
+                }
+
+                else -> throw RuntimeException("Unhandled event ${event.type}")
             }
             return ResponseEntity("Success", HttpStatus.OK)
         }.recover {

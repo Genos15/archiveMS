@@ -1,16 +1,17 @@
-package com.thintwice.archive.mbompay.domain.model
+package com.thintwice.archive.mbompay.domain.input
 
 import com.stripe.model.Card
+import com.thintwice.archive.mbompay.domain.common.JsonEquivalent
 
-data class Card(
+data class JCardInput(
     val name: String,
     val last4Digits: String,
     val expiredMonth: Long,
     val expiredYear: Long,
     val country: String?,
     val brand: String?,
-    val funding: String?,
-) {
+    val providerId: String?,
+) : JsonEquivalent {
     constructor(stripeCard: Card) : this(
         name = stripeCard.name,
         country = stripeCard.country,
@@ -18,7 +19,7 @@ data class Card(
         expiredYear = stripeCard.expYear,
         expiredMonth = stripeCard.expMonth,
         last4Digits = stripeCard.last4,
-        funding = stripeCard.funding,
+        providerId = stripeCard.id,
     )
 }
 

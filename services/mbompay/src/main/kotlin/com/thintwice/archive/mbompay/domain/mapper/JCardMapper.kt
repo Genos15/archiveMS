@@ -6,29 +6,26 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.thintwice.archive.mbompay.domain.common.MapperState
 import com.thintwice.archive.mbompay.domain.model.JCard
-import mu.KLogger
-import mu.KotlinLogging
 import java.util.*
 
 @Component
-class CardMapper(
-    private val logger: KLogger = KotlinLogging.logger {},
+class JCardMapper(
     private val mapper: ObjectMapper,
 ) : MapperState<Row, Any, JCard> {
 
-    override fun list(row: Row, o: Any): List<JCard> = try {
+    override fun list(row: Row, o: Any): List<JCard> = runCatching {
         val payload = row.get(0, String::class.java) ?: error("something went wrong with mapping values")
-        mapper.readValue(payload)
-    } catch (e: Exception) {
-        logger.warn { e.message }
+        mapper.readValue<List<JCard>>(payload)
+    }.recover {
+        println("-- JCardMapper Error = $it")
         emptyList()
-    }
+    }.getOrDefault(emptyList())
 
-    override fun factory(row: Row, o: Any): Optional<JCard> = try {
+    override fun factory(row: Row, o: Any): Optional<JCard> = runCatching {
         val payload = row.get(0, String::class.java) ?: error("something went wrong with mapping value")
         Optional.ofNullable(mapper.readValue<List<JCard>?>(payload)?.firstOrNull())
-    } catch (e: Exception) {
-        logger.warn { e.message }
-        Optional.empty<JCard>()
-    }
+    }.recover {
+        println("-- JCardMapper Error = $it")
+        Optional.empty()
+    }.getOrDefault(Optional.empty())
 }

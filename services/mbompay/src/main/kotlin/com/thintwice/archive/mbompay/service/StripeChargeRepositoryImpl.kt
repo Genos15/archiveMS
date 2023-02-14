@@ -5,6 +5,7 @@ import com.stripe.model.Card
 import com.stripe.model.Charge
 import com.stripe.model.PaymentIntent
 import com.stripe.param.ChargeCreateParams
+import com.stripe.param.PaymentIntentConfirmParams
 import com.stripe.param.PaymentIntentCreateParams
 import com.stripe.param.PaymentSourceCollectionListParams
 import com.thintwice.archive.mbompay.configuration.bundle.RB
@@ -63,14 +64,30 @@ class StripeChargeRepositoryImpl(
         if (customerCards == null || defaultCard == null) {
             throw RuntimeException("no payment method registered")
         }
+
         val params = PaymentIntentCreateParams.builder()
             .setAmount(amount)
             .setCurrency("eur")
             .setCustomer(customer.id)
+            .addPaymentMethodType(kDEFAULT_PAYMENT_METHOD)
+            .setPaymentMethod(defaultCard.id)
             .build()
 
         val paymentIntent = PaymentIntent.create(params)
-        return paymentIntent.clientSecret
+//        return confirm(intent = paymentIntent.clientSecret)
+        return confirm(intent = paymentIntent.id, paymentMethod = defaultCard)
+    }
+
+    fun confirm(intent: String, paymentMethod: Card): String? {
+        val paymentIntent = PaymentIntent.retrieve(intent)
+
+        val params = PaymentIntentConfirmParams.builder()
+            .setPaymentMethod(paymentMethod.id)
+            .build()
+
+        val confirmation = paymentIntent.confirm(params)
+
+        return confirmation.clientSecret
     }
 
     override suspend fun refund(): Charge? {
@@ -84,47 +101,20 @@ class StripeChargeRepositoryImpl(
     }
 
     override suspend fun createPaymentIntentEventHandler(intent: PaymentIntent) {
-        println("""
+        println(
+            """
             -- created payment intent
             ${intent.id}
             ${intent.amount}
-            ${intent.receiptEmail}
-        """.trimIndent())
+            ${intent.status}
+        """.trimIndent()
+        )
     }
 
-//    override suspend fun create(customer: Customer, card: CardInput): Card? {
-//        Stripe.apiKey = secretApiKey
-//        val tokenCard = Token.create(card.createToken())
-//        val source = card.createSource(tokenCard.id)
-//        return customer.sources.create(source) as? Card?
-//    }
-//
-//    override suspend fun update(customer: Customer, cardId: String, card: CardInput): Card {
-//        TODO("Not yet implemented")
-//    }
-//
-//    override suspend fun delete(customer: Customer, cardId: String): Boolean {
-//        Stripe.apiKey = secretApiKey
-//        val card = customer.sources.retrieve(cardId) as? Card?
-//        val deletedCard = card?.delete()
-//        return deletedCard?.deleted == true
-//    }
-//
-//    override suspend fun find(customer: Customer, cardId: String): Optional<Card> {
-//        Stripe.apiKey = secretApiKey
-//        val card = customer.sources.retrieve(cardId) as? Card?
-//        return Optional.ofNullable(card)
-//    }
-//
-//    override suspend fun retrieve(first: Long, customer: Customer): Iterable<Card> {
-//        Stripe.apiKey = secretApiKey
-//        val params = PaymentSourceCollectionListParams.builder()
-//            .setLimit(first)
-//            .setObject("card")
-//            .build()
-//
-//        val cards = customer.sources.list(params)
-//        return cards.data.filterIsInstance<Card>()
-//    }
+
+
+    companion object {
+        const val kDEFAULT_PAYMENT_METHOD = "card"
+    }
 
 }
