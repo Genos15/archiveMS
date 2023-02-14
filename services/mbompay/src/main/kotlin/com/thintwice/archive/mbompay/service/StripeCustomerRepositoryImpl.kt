@@ -67,7 +67,9 @@ class StripeCustomerRepositoryImpl(
         val customer = dbCustomer.get()
         val customerOffset = retrieve(first = 10, options = mapOf("email" to customer.email!!))
         return@mono if (customerOffset.toList().isEmpty()) {
-            create(customer = customer, source = customerOffset.first())
+            val newCustomer = create(customer = customer, source = customerOffset.first())
+            customerRepo.updateStripeId(uid = newCustomer.id, accessToken = accessToken)
+            newCustomer
         } else {
             update(customer = customer, source = customerOffset.first())
         }

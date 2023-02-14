@@ -20,7 +20,7 @@ class ChargeController(private val service: StripeChargeRepository) {
                 throw RuntimeException("invalid token")
             }
             return service.send(amount = amount, token = authentication.name)
-        }.onFailure {
+        }.recover {
             when (it) {
                 is StripeException -> {
                     println("StripeException Exception $it")
@@ -28,7 +28,6 @@ class ChargeController(private val service: StripeChargeRepository) {
 
                 else -> println("Unknown Exception")
             }
-        } .recover {
             null
         }
 
@@ -43,7 +42,7 @@ class ChargeController(private val service: StripeChargeRepository) {
                 throw RuntimeException("invalid token")
             }
             return service.sendPayment(amount = amount, token = authentication.name)
-        }.onFailure {
+        }.recover {
             when (it) {
                 is StripeException -> {
                     println("StripeException Exception $it")
@@ -51,6 +50,8 @@ class ChargeController(private val service: StripeChargeRepository) {
 
                 else -> println("Unknown Exception")
             }
+
+            return null
         }
 
         return result.getOrNull()

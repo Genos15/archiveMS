@@ -1,6 +1,7 @@
 package com.thintwice.archive.mbompay.repository
 
 
+import com.stripe.model.Customer
 import com.thintwice.archive.mbompay.domain.input.CustomerInput
 import com.thintwice.archive.mbompay.domain.model.JCustomer
 import com.thintwice.archive.mbompay.domain.model.JwtToken
@@ -12,4 +13,8 @@ interface CustomerRepository {
     suspend fun customer(accessToken: String): Optional<JCustomer>
     suspend fun customers(first: Int, after: UUID? = null): Iterable<JCustomer>
     suspend fun jwtToken(customers: List<JCustomer>): Map<JCustomer, JwtToken>
+
+    suspend fun updateStripeId(uid: String, accessToken: String)
+
+    suspend fun stripeEventUpdate(customer: Customer)
 }
