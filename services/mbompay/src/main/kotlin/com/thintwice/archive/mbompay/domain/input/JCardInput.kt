@@ -11,15 +11,17 @@ data class JCardInput(
     val country: String?,
     val brand: String?,
     val providerId: String?,
+    val customerUid: String?
 ) : JsonEquivalent {
     constructor(stripeCard: Card) : this(
-        name = stripeCard.name,
+        name = stripeCard.name ?: "NAME",
         country = stripeCard.country,
         brand = stripeCard.brand,
         expiredYear = stripeCard.expYear,
         expiredMonth = stripeCard.expMonth,
         last4Digits = stripeCard.last4,
         providerId = stripeCard.id,
+        customerUid = stripeCard.customer
     )
 }
 

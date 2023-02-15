@@ -26,6 +26,9 @@ class PaymentRepositoryImpl(
     private val dbClient: DbClient,
 ) : PaymentRepository {
     override suspend fun update(input: PaymentIntentInput, accessToken: String?): Optional<JTransaction> {
+        if (input.paymentMethod == null) {
+            return Optional.empty()
+        }
         val query = qr.l("mutation.create.edit.transaction")
         return dbClient.exec(query = query)
             .bind("input", jsonOf(input))

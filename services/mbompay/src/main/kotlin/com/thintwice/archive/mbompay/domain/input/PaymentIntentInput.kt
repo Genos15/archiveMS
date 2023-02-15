@@ -1,5 +1,6 @@
 package com.thintwice.archive.mbompay.domain.input
 
+import com.stripe.model.Charge
 import com.stripe.model.PaymentIntent
 import com.thintwice.archive.mbompay.domain.common.JsonEquivalent
 
@@ -15,7 +16,7 @@ data class PaymentIntentInput(
     val status: String,
 ) : JsonEquivalent {
 
-    constructor(intent: PaymentIntent) : this(
+    constructor(intent: PaymentIntent, status: String? = null) : this(
         uid = intent.id,
         amount = intent.amount,
         cancelledAt = intent.canceledAt,
@@ -23,7 +24,19 @@ data class PaymentIntentInput(
         clientSecret = intent.clientSecret,
         currency = intent.currency,
         customerId = intent.customer,
-        paymentMethod = intent.paymentMethod,
-        status = intent.status
+        paymentMethod = intent.source,
+        status = status ?: intent.status
+    )
+
+    constructor(intent: Charge, status: String? = null) : this(
+        uid = intent.paymentIntent,
+        amount = intent.amount,
+        cancelledAt = intent.paymentIntentObject?.canceledAt,
+        cancellationReason = intent.paymentIntentObject?.cancellationReason,
+        clientSecret = intent.paymentIntentObject.clientSecret,
+        currency = intent.currency,
+        customerId = intent.customer,
+        paymentMethod = intent.source.id,
+        status = status ?: intent.status
     )
 }
