@@ -31,10 +31,13 @@ class CardRepositoryImpl(
             ?: return Optional.empty()
 
         val inputStripeCard = JCardInput(stripeCard = stripeCard)
+        return create(input = inputStripeCard, token = token)
+    }
 
+    private suspend fun create(input: JCardInput, token: String): Optional<JCard> {
         val query = qr.l("mutation.create.edit.card")
         return dbClient.exec(query = query)
-            .bind("input", jsonOf(inputStripeCard))
+            .bind("input", jsonOf(input))
             .bind("token", token)
             .map(mapper::factory)
             .first()
@@ -52,7 +55,9 @@ class CardRepositoryImpl(
 
     override suspend fun stripeEventCreate(card: Card): Boolean {
         //TODO: create a card if not create in the database
-        return true
+        val inputStripeCard = JCardInput(stripeCard = card)
+        val result = create(input = inputStripeCard, token = "")
+        return result.isPresent
     }
 
     override suspend fun delete(id: UUID, token: String): Boolean {

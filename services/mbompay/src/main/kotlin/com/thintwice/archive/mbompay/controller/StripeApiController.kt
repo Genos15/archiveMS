@@ -38,10 +38,6 @@ class StripeApiController(
                     paymentService.onCreate(stripeObject as PaymentIntent)
                 }
 
-                sr.l("stripe.event.payment_intent.succeeded") -> {
-                    paymentService.onSucceed(stripeObject as PaymentIntent)
-                }
-
                 sr.l("stripe.event.payment_intent.requires_action") -> {
                     paymentService.onRequiredAction(stripeObject as PaymentIntent)
                 }
@@ -54,12 +50,20 @@ class StripeApiController(
                     paymentService.onFailed(stripeObject as PaymentIntent)
                 }
 
+                sr.l("stripe.event.charge.failed") -> {
+                    paymentService.onFailed(stripeObject as Charge)
+                }
+
                 sr.l("stripe.event.payment_intent.canceled") -> {
                     paymentService.onCancelled(stripeObject as PaymentIntent)
                 }
 
                 sr.l("stripe.event.charge.succeeded") -> {
-                    println("stripe payment + customer charge succeeded")
+                    paymentService.onSucceed(stripeObject as Charge)
+                }
+
+                sr.l("stripe.event.payment_intent.succeeded") -> {
+                    paymentService.onSucceed(stripeObject as PaymentIntent)
                 }
 
                 sr.l("stripe.event.customer.source.deleted") -> {
@@ -69,6 +73,11 @@ class StripeApiController(
 
                 sr.l("stripe.event.customer.source.created") -> {
                     println("stripe create customer card")
+                    cardService.stripeEventCreate(stripeObject as Card)
+                }
+
+                sr.l("stripe.event.customer.source.updated") -> {
+                    println("stripe update customer card")
                     cardService.stripeEventCreate(stripeObject as Card)
                 }
 
