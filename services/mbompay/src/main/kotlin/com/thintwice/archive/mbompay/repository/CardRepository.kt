@@ -13,4 +13,6 @@ interface CardRepository {
     suspend fun stripeEventDelete(card: Card): Boolean
     suspend fun stripeEventCreate(card: Card): Boolean
     suspend fun cards(first: Long, after: UUID? = null, token: String): Iterable<JCard>
+    suspend fun create(input: String, token: String): String?
+    suspend fun update(input: String, token: String): String?
 }

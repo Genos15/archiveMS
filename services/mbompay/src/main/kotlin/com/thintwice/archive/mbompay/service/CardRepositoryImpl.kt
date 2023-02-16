@@ -3,6 +3,7 @@ package com.thintwice.archive.mbompay.service
 import com.stripe.model.Card
 import com.thintwice.archive.mbompay.configuration.bundle.RB
 import com.thintwice.archive.mbompay.configuration.database.DbClient
+import com.thintwice.archive.mbompay.configuration.security.CryptoAES
 import com.thintwice.archive.mbompay.domain.common.jsonOf
 import com.thintwice.archive.mbompay.domain.input.CardInput
 import com.thintwice.archive.mbompay.domain.input.JCardInput
@@ -23,6 +24,7 @@ class CardRepositoryImpl(
     private val qr: RB,
     private val dbClient: DbClient,
     private val mapper: JCardMapper,
+    private val crypto: CryptoAES,
 ) : CardRepository {
 
     override suspend fun create(input: CardInput, token: String): Optional<JCard> {
@@ -32,6 +34,36 @@ class CardRepositoryImpl(
 
         val inputStripeCard = JCardInput(stripeCard = stripeCard)
         return create(input = inputStripeCard, token = token)
+    }
+
+    override suspend fun create(input: String, token: String): String? {
+        val decryptedInput = crypto.decrypt(encrypted = input) ?: return null
+        val formattedInput = mapper.input(source = decryptedInput) ?: return null
+        val optionalCard = create(input = formattedInput, token = token)
+        if (optionalCard.isPresent.not()) {
+            return null
+        }
+
+        val outcomeJson = jsonOf(element = optionalCard.get()).asString()
+        return crypto.encrypt(source = outcomeJson)
+    }
+
+    override suspend fun update(input: String, token: String): String? {
+        val decryptedInput = crypto.decrypt(encrypted = input) ?: return null
+        val formattedInput = mapper.inputIssuer(source = decryptedInput) ?: return null
+        println(formattedInput)
+
+        val dbCard = find(id = formattedInput.id, token = token)
+        if (dbCard.isPresent.not()) {
+            return null
+        }
+
+        val cardToken = cardFactory.updateIssue(card = dbCard.get(), input = formattedInput)
+
+        println(dbCard)
+        println(cardToken)
+
+        return null
     }
 
     private suspend fun create(input: JCardInput, token: String): Optional<JCard> {
@@ -107,4 +139,5 @@ class CardRepositoryImpl(
             .first()
             .awaitFirstOrDefault(emptyList())
     }
+
 }

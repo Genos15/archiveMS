@@ -6,8 +6,11 @@ import com.stripe.model.Customer
 import com.stripe.model.Token
 import com.stripe.param.CardUpdateOnCustomerParams
 import com.stripe.param.PaymentSourceCollectionListParams
+import com.stripe.param.TokenCreateParams
 import com.thintwice.archive.mbompay.configuration.bundle.RB
 import com.thintwice.archive.mbompay.domain.input.CardInput
+import com.thintwice.archive.mbompay.domain.input.CardIssuerInput
+import com.thintwice.archive.mbompay.domain.model.JCard
 import com.thintwice.archive.mbompay.repository.StripeCardRepository
 import org.springframework.stereotype.Service
 import java.util.*
@@ -55,6 +58,21 @@ class StripeCardRepositoryImpl(sr: RB) : StripeCardRepository {
 
         val cards = customer.sources.list(params)
         return cards.data.filterIsInstance<Card>()
+    }
+
+    override suspend fun updateIssue(card: JCard, input: CardIssuerInput): Token {
+        Stripe.apiKey = secretApiKey
+
+        val tokenCvcUpdate = TokenCreateParams
+            .CvcUpdate.builder()
+            .setCvc(input.cvc)
+            .build()
+
+        val params = TokenCreateParams.builder()
+            .setCvcUpdate(tokenCvcUpdate)
+            .build()
+
+        return Token.create(params)
     }
 
 
