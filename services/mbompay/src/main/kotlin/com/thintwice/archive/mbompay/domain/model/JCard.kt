@@ -1,5 +1,6 @@
 package com.thintwice.archive.mbompay.domain.model
 
+import com.thintwice.archive.mbompay.domain.common.JsonEquivalent
 import java.util.UUID
 
 data class JCard(
@@ -12,4 +13,4 @@ data class JCard(
     val brand: String?,
     val funding: String?,
     val providerId: String?,
-)
+): JsonEquivalent

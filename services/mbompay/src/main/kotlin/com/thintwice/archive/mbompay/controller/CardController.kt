@@ -1,7 +1,6 @@
 package com.thintwice.archive.mbompay.controller
 
 import com.stripe.exception.StripeException
-import com.thintwice.archive.mbompay.domain.input.CardInput
 import com.thintwice.archive.mbompay.domain.model.JCard
 import com.thintwice.archive.mbompay.repository.CardRepository
 import org.springframework.graphql.data.method.annotation.*
@@ -13,9 +12,10 @@ import java.util.*
 
 @Controller
 class CardController(private val service: CardRepository) {
+
     @PreAuthorize("hasAnyRole('CUSTOMER')")
-    @MutationMapping(name = "card")
-    suspend fun card(@Argument input: CardInput, authentication: Authentication?): Optional<JCard> {
+    @MutationMapping(name = "ticket")
+    suspend fun create(@Argument input: String, authentication: Authentication?): String? {
         val result = runCatching {
             if (authentication?.name == null) {
                 throw RuntimeException("invalid token")
@@ -32,7 +32,7 @@ class CardController(private val service: CardRepository) {
             null
         }
 
-        return Optional.ofNullable(result.getOrNull())
+        return result.getOrNull()
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER')")

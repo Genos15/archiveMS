@@ -9,7 +9,7 @@ data class CardInput(
     val number: String,
     val expiredMonth: Int,
     val expiredYear: Int,
-    val cvc: String? = null,
+    val cvc: String,
 ) : JsonEquivalent {
 
     fun createToken(): TokenCreateParams {
@@ -18,6 +18,7 @@ data class CardInput(
             .setExpMonth("$expiredMonth")
             .setExpYear("$expiredYear")
             .setName(name)
+            .setCvc(cvc)
             .build()
         return TokenCreateParams.builder()
             .setCard(card)
