@@ -16,4 +16,6 @@ interface StripeCardRepository {
     suspend fun retrieve(first: Long, customer: Customer): Iterable<Card>
 
     suspend fun updateIssue(card: JCard, input: CardIssuerInput): Token
+
+    suspend fun currencyByCountry(country: String?): String
 }
