@@ -36,6 +36,28 @@ class CardController(private val service: CardRepository) {
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER')")
+    @MutationMapping(name = "defaultCard")
+    suspend fun defaultCard(@Argument id: UUID, authentication: Authentication?): Optional<JCard> {
+        val result = runCatching {
+            if (authentication?.name == null) {
+                throw RuntimeException("invalid token")
+            }
+            return service.defaultCard(id = id, token = authentication.name)
+        }.recover {
+            when (it) {
+                is StripeException -> {
+                    println("StripeException Exception $it")
+                }
+
+                else -> println("Unknown Exception $it")
+            }
+            Optional.empty<JCard>()
+        }
+
+        return result.getOrDefault(Optional.empty())
+    }
+
+    @PreAuthorize("hasAnyRole('CUSTOMER')")
     @MutationMapping(name = "deleteCard")
     suspend fun deleteCard(@Argument id: UUID, authentication: Authentication?): Boolean {
         val result = runCatching {
