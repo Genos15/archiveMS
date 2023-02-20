@@ -1,6 +1,7 @@
 package com.thintwice.archive.mbompay.controller
 
 import com.thintwice.archive.mbompay.domain.input.CustomerInput
+import com.thintwice.archive.mbompay.domain.model.JCard
 import com.thintwice.archive.mbompay.domain.model.JCustomer
 import com.thintwice.archive.mbompay.domain.model.JwtToken
 import com.thintwice.archive.mbompay.repository.CustomerRepository
@@ -50,11 +51,40 @@ class CustomerController(private val service: CustomerRepository) {
         return service.customers(first = first, after = after)
     }
 
-    @PreAuthorize("hasAnyRole('FIREBASE')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'FIREBASE')")
     @BatchMapping(field = "jwtToken", typeName = "Customer")
     suspend fun jwtToken(customers: List<JCustomer>): Map<JCustomer, JwtToken> {
-        println("getting customer JWT")
-        return service.jwtToken(customers = customers)
+        val map = runCatching {
+            service.jwtToken(customers = customers)
+        }.recover {
+            when (it) {
+                is RuntimeException -> {
+                    println("RuntimeException Exception $it")
+                }
+
+                else -> println("Unknown Exception $it")
+            }
+            emptyMap()
+        }
+        return map.getOrDefault(emptyMap())
+    }
+
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'FIREBASE')")
+    @BatchMapping(field = "defaultCard", typeName = "Customer")
+    suspend fun defaultCard(customers: List<JCustomer>): Map<JCustomer, JCard> {
+        val map = runCatching {
+            service.defaultCard(customers = customers)
+        }.recover {
+            when (it) {
+                is RuntimeException -> {
+                    println("RuntimeException Exception $it")
+                }
+
+                else -> println("Unknown Exception $it")
+            }
+            emptyMap()
+        }
+        return map.getOrDefault(emptyMap())
     }
 
 }

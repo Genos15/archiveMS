@@ -9,7 +9,9 @@ import com.thintwice.archive.mbompay.domain.common.parameterOrNull
 import com.thintwice.archive.mbompay.domain.input.CustomerInput
 import com.thintwice.archive.mbompay.domain.input.JCustomerInput
 import com.thintwice.archive.mbompay.domain.mapper.CustomerMapper
+import com.thintwice.archive.mbompay.domain.mapper.JCardMapper
 import com.thintwice.archive.mbompay.domain.mapper.JwtTokenMapper
+import com.thintwice.archive.mbompay.domain.model.JCard
 import com.thintwice.archive.mbompay.domain.model.JCustomer
 import com.thintwice.archive.mbompay.domain.model.JwtToken
 import com.thintwice.archive.mbompay.repository.CustomerRepository
@@ -28,6 +30,7 @@ class CustomerRepositoryImpl(
     private val mapper: CustomerMapper,
     private val jwtMapper: JwtTokenMapper,
     private val jwtService: JWTService,
+    private val cardMapper: JCardMapper,
 ) : CustomerRepository {
 
     override suspend fun customer(input: CustomerInput): Optional<JCustomer> {
@@ -85,6 +88,26 @@ class CustomerRepositoryImpl(
                     .bind("input", jsonOf(jwtToken))
                     .bind("username", customer.email)
                     .map(jwtMapper::factory)
+                    .first()
+                    .map { AbstractMap.SimpleEntry(customer, it.orElseGet { null }) }
+                    .filter { it.value != null }
+            }
+            .runOn(Schedulers.parallel())
+            .sequential()
+            .collectList()
+            .map { entries -> entries.associateBy({ it.key }, { it.value }) }
+            .awaitFirstOrElse { emptyMap() }
+    }
+
+    override suspend fun defaultCard(customers: List<JCustomer>): Map<JCustomer, JCard> {
+        val query = qr.l("query.retrieve.customer.default.card")
+        return Flux.fromIterable(customers)
+            .filter { it.email != null && it.emailVerified == true }
+            .parallel()
+            .flatMap { customer ->
+                dbClient.exec(query = query)
+                    .bind("id", customer.id)
+                    .map(cardMapper::factory)
                     .first()
                     .map { AbstractMap.SimpleEntry(customer, it.orElseGet { null }) }
                     .filter { it.value != null }

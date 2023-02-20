@@ -7,6 +7,7 @@ import com.thintwice.archive.mbompay.configuration.security.CryptoAES
 import com.thintwice.archive.mbompay.domain.common.jsonOf
 import com.thintwice.archive.mbompay.domain.input.CardInput
 import com.thintwice.archive.mbompay.domain.input.JCardInput
+import com.thintwice.archive.mbompay.domain.input.UpdateCardInput
 import com.thintwice.archive.mbompay.domain.mapper.JCardMapper
 import com.thintwice.archive.mbompay.domain.model.JCard
 import com.thintwice.archive.mbompay.repository.CardRepository
@@ -80,6 +81,17 @@ class CardRepositoryImpl(
         val query = qr.l("query.find.card")
         return dbClient.exec(query = query)
             .bind("id", id)
+            .map(mapper::factory)
+            .first()
+            .awaitFirstOrDefault(Optional.empty())
+    }
+
+    override suspend fun defaultCard(id: UUID, token: String): Optional<JCard> {
+        val input = UpdateCardInput(id = id, isDefault = true)
+        val query = qr.l("mutation.create.edit.card")
+        return dbClient.exec(query = query)
+            .bind("input", jsonOf(input))
+            .bind("token", token)
             .map(mapper::factory)
             .first()
             .awaitFirstOrDefault(Optional.empty())

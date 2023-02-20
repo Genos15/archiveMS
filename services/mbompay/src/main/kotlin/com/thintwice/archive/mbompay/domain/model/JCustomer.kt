@@ -18,6 +18,7 @@ data class JCustomer(
     val providerUid: String? = null,
     val firebaseUid: String? = null,
     val jwtToken: JwtToken? = null,
+    val defaultCard: JCard? = null,
     val address: String? = null,
     val birthday: OffsetDateTime? = null,
     val stripeUid: String? = null,

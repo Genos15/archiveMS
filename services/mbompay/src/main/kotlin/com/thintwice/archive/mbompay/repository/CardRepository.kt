@@ -9,6 +9,7 @@ import java.util.*
 interface CardRepository {
     suspend fun create(input: CardInput, token: String): Optional<JCard>
     suspend fun find(id: UUID, token: String): Optional<JCard>
+    suspend fun defaultCard(id: UUID, token: String): Optional<JCard>
     suspend fun delete(id: UUID, token: String): Boolean
     suspend fun stripeEventDelete(card: Card): Boolean
     suspend fun stripeEventCreate(card: Card): Boolean
