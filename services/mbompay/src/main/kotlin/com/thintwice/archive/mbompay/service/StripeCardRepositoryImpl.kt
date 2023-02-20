@@ -2,6 +2,7 @@ package com.thintwice.archive.mbompay.service
 
 import com.stripe.Stripe
 import com.stripe.model.Card
+import com.stripe.model.CountrySpec
 import com.stripe.model.Customer
 import com.stripe.model.Token
 import com.stripe.param.CardUpdateOnCustomerParams
@@ -75,6 +76,14 @@ class StripeCardRepositoryImpl(sr: RB) : StripeCardRepository {
         return Token.create(params)
     }
 
+    override suspend fun currencyByCountry(country: String?): String {
+        if (country == null) {
+            return "eur"
+        }
+        Stripe.apiKey = secretApiKey
+        val countrySpec = CountrySpec.retrieve(country)
+        return countrySpec.defaultCurrency ?: "eur"
+    }
 
 //    suspend fun cards(first: Long, after: UUID?, token: String): Iterable<JCard> {
 //        val customer = customerFactory.activeCustomer(accessToken = token)

@@ -13,4 +13,5 @@ data class JCard(
     val brand: String?,
     val funding: String?,
     val providerId: String?,
+    val currency: String
 ): JsonEquivalent

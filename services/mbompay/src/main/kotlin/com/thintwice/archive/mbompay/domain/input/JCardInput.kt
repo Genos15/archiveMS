@@ -11,9 +11,10 @@ data class JCardInput(
     val country: String?,
     val brand: String?,
     val providerId: String?,
-    val customerUid: String?
+    val customerUid: String?,
+    val currency: String,
 ) : JsonEquivalent {
-    constructor(stripeCard: Card) : this(
+    constructor(stripeCard: Card, currency: String?) : this(
         name = stripeCard.name ?: "NAME",
         country = stripeCard.country,
         brand = stripeCard.brand,
@@ -21,7 +22,8 @@ data class JCardInput(
         expiredMonth = stripeCard.expMonth,
         last4Digits = stripeCard.last4,
         providerId = stripeCard.id,
-        customerUid = stripeCard.customer
+        customerUid = stripeCard.customer,
+        currency = currency ?: "eur"
     )
 }
 

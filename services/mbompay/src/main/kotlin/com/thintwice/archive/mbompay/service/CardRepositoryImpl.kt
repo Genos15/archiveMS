@@ -18,6 +18,7 @@ import org.springframework.r2dbc.core.Parameter
 import org.springframework.stereotype.Service
 import java.util.*
 
+
 @Service
 class CardRepositoryImpl(
     private val customerFactory: StripeCustomerRepository,
@@ -33,7 +34,8 @@ class CardRepositoryImpl(
         val stripeCard = cardFactory.create(customer = customer, card = input)
             ?: return Optional.empty()
 
-        val inputStripeCard = JCardInput(stripeCard = stripeCard)
+        val currency = cardFactory.currencyByCountry(country = stripeCard.country)
+        val inputStripeCard = JCardInput(stripeCard = stripeCard, currency = currency)
         return create(input = inputStripeCard, token = token)
     }
 
@@ -99,7 +101,9 @@ class CardRepositoryImpl(
 
     override suspend fun stripeEventCreate(card: Card): Boolean {
         //TODO: create a card if not create in the database
-        val inputStripeCard = JCardInput(stripeCard = card)
+
+        val currency = cardFactory.currencyByCountry(country = card.country)
+        val inputStripeCard = JCardInput(stripeCard = card, currency = currency)
         val result = create(input = inputStripeCard, token = "")
         return result.isPresent
     }
